@@ -511,23 +511,15 @@ public class PlayerListener implements Listener {
         ItemStack inHand = player.getItemInHand();
 
         /* RANCHING */
-        RanchingManager ranchingManager = mcMMOPlayer.getRanchingManager();
-
-        /* Shears Mastery */
-        if (entity instanceof Sheep) {
-            Sheep sheep = (Sheep) entity;
-            player.sendMessage("Can breed? " + sheep.canBreed());
-        }
-
-        entity.setMetadata(mcMMO.animalBreedKey + player.getName(), mcMMO.metadataValue);
-
-        if (Permissions.masterHerder(player)) {
-            ranchingManager.handleMasterHerder(entity, inHand);
-        }
-
-        if (Permissions.skillEnabled(player, SkillType.RANCHING)) {
-            ranchingManager.applyXpGain(Ranching.breedExperience);
-        }
+//        RanchingManager ranchingManager = mcMMOPlayer.getRanchingManager();
+//
+//        if (Permissions.masterHerder(player)) {
+//            ranchingManager.handleMasterHerder(entity, inHand);
+//        }
+//
+//        if (Permissions.skillEnabled(player, SkillType.RANCHING)) {
+//            ranchingManager.applyXpGain(Ranching.breedExperience);
+//        }
     }
 
     /**
