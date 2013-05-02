@@ -295,6 +295,7 @@ public class SkillUtils {
     public static boolean hasMiscSkills(Player player) {
         if (Permissions.skillEnabled(player, SkillType.ACROBATICS)
                 || Permissions.skillEnabled(player, SkillType.SMELTING)
+                || Permissions.skillEnabled(player, SkillType.RANCHING)
                 || Permissions.skillEnabled(player, SkillType.REPAIR)) {
             return true;
         }
