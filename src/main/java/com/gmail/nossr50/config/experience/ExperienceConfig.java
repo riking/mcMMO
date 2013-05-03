@@ -170,6 +170,10 @@ public class ExperienceConfig extends AutoUpdateConfigLoader {
     /* Skill modifiers */
     public double getFormulaSkillModifier(SkillType skill) { return config.getDouble("Experience_Formula.Modifier." + StringUtils.getCapitalized(skill.toString())); }
 
+    /* Deminished Returns */
+    public int getDeminishedReturnsThreshold() { return config.getInt("Deminished_Returns.Threshold", 20000); }
+    public int getDeminishedReturnsTimeInterval() { return config.getInt("Deminished_Returns.Time_Interval", 10); }
+
     /* Conversion */
     public double getExpModifier() { return config.getDouble("Conversion.Exp_Modifier", 1); }
 
