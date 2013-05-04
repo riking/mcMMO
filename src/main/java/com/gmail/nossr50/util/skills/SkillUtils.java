@@ -655,7 +655,7 @@ public class SkillUtils {
         }
 
         if (blockId == Salvage.salvageAnvilId) {
-            return LocaleLoader.getString("Repair.Listener.Anvil2");
+            return LocaleLoader.getString("Salvage.Listener.Anvil");
         }
 
         return "";

@@ -34,11 +34,11 @@ public class SalvageCommand extends SkillCommand {
     @Override
     protected void effectsDisplay() {
         if (canAdvancedSalvage) {
-            player.sendMessage(LocaleLoader.getString("Effects.Template", "Advanced Salvage", "Salvage damaged items")); // TODO: Localize
+            player.sendMessage(LocaleLoader.getString("Effects.Template", LocaleLoader.getString("Salvage.Effect.0"), LocaleLoader.getString("Salvage.Effect.1")));
         }
 
         if (canArcaneSalvage) {
-            player.sendMessage(LocaleLoader.getString("Effects.Template", "Arcane Salvaging", "Extract enchantments from items")); // TODO: Localize
+            player.sendMessage(LocaleLoader.getString("Effects.Template", LocaleLoader.getString("Salvage.Effect.2"), LocaleLoader.getString("Salvage.Effect.3")));
         }
     }
 
@@ -51,24 +51,24 @@ public class SalvageCommand extends SkillCommand {
     protected void statsDisplay() {
         if (canAdvancedSalvage) {
             if (skillValue < Salvage.advancedSalvageUnlockLevel) {
-                player.sendMessage(LocaleLoader.getString("Ability.Generic.Template.Lock", "LOCKED UNTIL {0}+ SKILL (ADVANCED SALVAGE)", Salvage.advancedSalvageUnlockLevel));
+                player.sendMessage(LocaleLoader.getString("Ability.Generic.Template.Lock", LocaleLoader.getString("Salvage.Ability.Locked.0"), Salvage.advancedSalvageUnlockLevel));
             }
             else {
-                player.sendMessage(LocaleLoader.getString("Ability.Generic.Template", "Advanced Salvage", "Can salvage damaged items."));
+                player.sendMessage(LocaleLoader.getString("Ability.Generic.Template", LocaleLoader.getString("Salvage.Ability.Bonus.0"), LocaleLoader.getString("Salvage.Ability.Bonus.1")));
             }
         }
 
         if (canArcaneSalvage) {
             SalvageManager salvageManager = mcMMOPlayer.getSalvageManager();
 
-            player.sendMessage(LocaleLoader.getString("Ability.Generic.Template", "Arcane Salvaging: ", "Rank {0}/5", salvageManager.getArcaneSalvageRank())); // TODO: Localize
+            player.sendMessage(LocaleLoader.getString("Ability.Generic.Template", LocaleLoader.getString("Salvage.Arcane.Rank"), salvageManager.getArcaneSalvageRank()));
 
             if (Salvage.arcaneSalvageEnchantLoss) {
-                player.sendMessage(LocaleLoader.getString("Ability.Generic.Template", "[[GRAY]]AS Full-Enchant Chance", salvageManager.getExtractFullEnchantChance()));
+                player.sendMessage(LocaleLoader.getString("Ability.Generic.Template", LocaleLoader.getString("Salvage.Arcane.ExtractFull"), salvageManager.getExtractFullEnchantChance()));
             }
 
             if (Salvage.arcaneSalvageDowngrades) {
-                player.sendMessage(LocaleLoader.getString("Ability.Generic.Template", "[[GRAY]]AS Partial-Enchant Chance", salvageManager.getExtractPartialEnchantChance()));
+                player.sendMessage(LocaleLoader.getString("Ability.Generic.Template", LocaleLoader.getString("Salvage.Arcane.ExtractPartial"), salvageManager.getExtractPartialEnchantChance()));
             }
         }
     }

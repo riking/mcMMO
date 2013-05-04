@@ -33,14 +33,14 @@ public class SalvageManager extends SkillManager {
         }
 
         if (item.getDurability() != 0 && (getSkillLevel() < Salvage.advancedSalvageUnlockLevel || !Permissions.advancedSalvage(player))) {
-            player.sendMessage("You aren't skilled enough to salvage damaged items."); // TODO: Localize
+            player.sendMessage(LocaleLoader.getString("Salvage.Skills.AdeptDamaged"));
             return;
         }
 
         int salvageableAmount = Salvage.calculateSalvageableAmount(item.getDurability(), item.getType().getMaxDurability(), Salvage.getSalvagedAmount(item));
 
         if (salvageableAmount == 0) {
-            player.sendMessage("This item is too damaged to be salvaged."); // TODO: Localize
+            player.sendMessage(LocaleLoader.getString("Salvage.Skills.TooDamaged"));
             return;
         }
 
@@ -111,7 +111,7 @@ public class SalvageManager extends SkillManager {
         Player player = getPlayer();
 
         if (getArcaneSalvageRank() == 0 || !Permissions.arcaneSalvage(player)) {
-            player.sendMessage("You were unable to extract the knowledge contained within this item."); // TODO: Localize
+            player.sendMessage(LocaleLoader.getString("Salvage.Skills.ArcaneFailed"));
             return null;
         }
 
@@ -138,15 +138,15 @@ public class SalvageManager extends SkillManager {
         Map<Enchantment, Integer> newEnchants = enchantMeta.getStoredEnchants();
 
         if (newEnchants.isEmpty()) {
-            player.sendMessage("You were unable to extract the knowledge contained within this item."); // TODO: Localize
+            player.sendMessage(LocaleLoader.getString("Salvage.Skills.ArcaneFailed"));
             return null;
         }
 
         if (downgraded || newEnchants.size() < enchants.size()) {
-            player.sendMessage("You were only able to extract some of the knowledge contained within this item."); // TODO: Localize
+            player.sendMessage(LocaleLoader.getString("Salvage.Skills.ArcanePartial"));
         }
         else {
-            player.sendMessage("You able to extract all of the knowledge contained within this item!"); // TODO: Localize
+            player.sendMessage(LocaleLoader.getString("Salvage.Skills.ArcaneSuccess"));
         }
 
         book.setItemMeta(enchantMeta);
