@@ -15,6 +15,7 @@ import com.gmail.nossr50.datatypes.player.McMMOPlayer;
 import com.gmail.nossr50.datatypes.spout.buttons.McMMOButton;
 import com.gmail.nossr50.datatypes.spout.huds.McMMOHud;
 import com.gmail.nossr50.datatypes.spout.popups.McMMOMenu;
+import com.gmail.nossr50.events.experience.McMMOPlayerXpGainEvent;
 import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.util.player.UserManager;
 import com.gmail.nossr50.util.spout.SpoutUtils;
@@ -87,6 +88,15 @@ public class SpoutListener implements Listener {
             if (!spoutHud.isMenuOpened()) {
                 spoutHud.openMenu();
             }
+        }
+    }
+
+    @EventHandler
+    public void onExpGain(McMMOPlayerXpGainEvent event) {
+        McMMOHud spoutHud = UserManager.getPlayer(event.getPlayer().getName()).getProfile().getSpoutHud();
+
+        if (spoutHud != null) {
+            spoutHud.setLastGained(event.getSkill());
         }
     }
 }

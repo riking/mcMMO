@@ -92,7 +92,7 @@ public class McMMOPlayer {
         profile = new PlayerProfile(playerName, true);
         party = PartyManager.getPlayerParty(playerName);
 
-        /* 
+        /*
          * I'm using this method because it makes code shorter and safer (we don't have to add all SkillTypes manually),
          * but I actually have no idea about the performance impact, if there is any.
          * If in the future someone wants to remove this, don't forget to also remove what is in the SkillType enum. - bm01
@@ -475,7 +475,6 @@ public class McMMOPlayer {
             return;
         }
 
-
         McMMOPlayerXpGainEvent event = new McMMOPlayerXpGainEvent(player, skillType, xp);
         mcMMO.p.getServer().getPluginManager().callEvent(event);
 
@@ -484,12 +483,6 @@ public class McMMOPlayer {
         }
 
         profile.setSkillXpLevel(skillType, profile.getSkillXpLevel(skillType) + event.getXpGained());
-
-        McMMOHud spoutHud = profile.getSpoutHud();
-
-        if (spoutHud != null) {
-            spoutHud.setLastGained(skillType);
-        }
 
         SkillUtils.xpCheckSkill(skillType, player, profile);
     }
