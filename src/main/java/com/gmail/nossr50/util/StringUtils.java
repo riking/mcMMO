@@ -54,6 +54,11 @@ public class StringUtils {
         return prettyString;
     }
 
+    public static String truncate(String baseString, int maxChars) {
+        if (maxChars > baseString.length()) return baseString;
+        return baseString.substring(0, maxChars);
+    }
+
     /**
      * Gets the int represented by this string.
      *

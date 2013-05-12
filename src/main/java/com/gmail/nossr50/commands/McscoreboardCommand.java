@@ -9,7 +9,6 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
-import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.util.StringUtils;
@@ -135,7 +134,7 @@ public class McscoreboardCommand implements TabExecutor {
     }
 
     private void clearScoreboard(Player player) {
-        player.setScoreboard(mcMMO.p.getServer().getScoreboardManager().getMainScoreboard());
-        player.sendMessage("Your scoreboard has been cleared!"); //TODO: Locale
+        ScoreboardManager.doRevert(player);
+        player.sendMessage("Cleared scoreboard."); //TODO: Locale
     }
 }

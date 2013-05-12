@@ -67,7 +67,7 @@ public class McrankCommand implements TabExecutor {
 
                 if (sender instanceof Player && Config.getInstance().getMcrankScoreboardEnabled()) {
                     ScoreboardManager.setupPlayerScoreboard(sender.getName());
-                    ScoreboardManager.enablePlayerRankScoreboardOthers((Player) sender, playerName);
+                    ScoreboardManager.enablePlayerRankScoreboard((Player) sender, playerName);
                 }
                 else {
                     display(sender, playerName);

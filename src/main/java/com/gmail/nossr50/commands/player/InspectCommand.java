@@ -74,7 +74,7 @@ public class InspectCommand implements TabExecutor {
                     }
 
                     if (sender instanceof Player && Config.getInstance().getInspectScoreboardEnabled()) {
-                        ScoreboardManager.enablePlayerInspectScoreboardOnline((Player) sender, mcMMOPlayer);
+                        ScoreboardManager.enablePlayerInspectScoreboardOnline((Player) sender, target.getName());
                         return true;
                     }
 
