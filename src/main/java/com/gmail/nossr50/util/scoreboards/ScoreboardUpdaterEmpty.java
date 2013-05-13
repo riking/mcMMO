@@ -24,11 +24,11 @@ public class ScoreboardUpdaterEmpty implements ScoreboardUpdater {
     public boolean needsUpdatingOnPlayerLevelUp(String other, SkillType skill) { return false; }
 
     public String getObjectiveName() {
-        return "mcmmo.empty";
+        return "moempty";
     }
 
     public String getCriteriaName() {
-        return "mcmmo.empty";
+        return "moempty";
     }
 
     public String getHeader() {
