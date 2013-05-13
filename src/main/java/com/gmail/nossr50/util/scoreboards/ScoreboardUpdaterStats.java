@@ -30,7 +30,6 @@ public class ScoreboardUpdaterStats implements ScoreboardUpdater {
     public boolean needsUpdatingOnSelfXPChange(SkillType skill) { return false; }
     public boolean needsUpdatingOnPlayerLevelUp(String other, SkillType skill) { return true; }
 
-    @Override
     public void updateScores(McmmoPlayerScoreboard wrapper, Objective obj) {
         // null -> viewer
         String player = this.target == null ? wrapper.getPlayerName() : this.target;

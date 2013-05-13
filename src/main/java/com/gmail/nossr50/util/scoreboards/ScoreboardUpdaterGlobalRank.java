@@ -17,7 +17,6 @@ import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.util.scoreboards.McmmoPlayerScoreboard.McmmoScoreboardType;
 import com.gmail.nossr50.util.skills.SkillUtils;
 
-
 public class ScoreboardUpdaterGlobalRank implements ScoreboardUpdater {
     private SkillType type;
     private String skillName;

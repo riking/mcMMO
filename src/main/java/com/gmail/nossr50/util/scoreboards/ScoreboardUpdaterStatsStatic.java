@@ -10,7 +10,6 @@ import com.gmail.nossr50.datatypes.player.PlayerProfile;
 import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.util.skills.SkillUtils;
 
-
 public class ScoreboardUpdaterStatsStatic extends ScoreboardUpdaterStats {
     PlayerProfile profile;
 

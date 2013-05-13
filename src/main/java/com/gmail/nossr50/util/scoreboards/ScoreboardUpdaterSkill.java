@@ -11,7 +11,6 @@ import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.util.scoreboards.McmmoPlayerScoreboard.McmmoScoreboardType;
 import com.gmail.nossr50.util.skills.SkillUtils;
 
-
 public class ScoreboardUpdaterSkill implements ScoreboardUpdater {
     private SkillType skill;
 
@@ -72,5 +71,4 @@ public class ScoreboardUpdaterSkill implements ScoreboardUpdater {
     public McmmoScoreboardType getType() {
         return McmmoScoreboardType.PLAYER_SKILL;
     }
-
 }

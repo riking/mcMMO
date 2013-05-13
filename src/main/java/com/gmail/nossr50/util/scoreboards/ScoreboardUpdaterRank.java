@@ -18,7 +18,6 @@ import com.gmail.nossr50.util.Permissions;
 import com.gmail.nossr50.util.scoreboards.McmmoPlayerScoreboard.McmmoScoreboardType;
 import com.gmail.nossr50.util.skills.SkillUtils;
 
-
 public class ScoreboardUpdaterRank implements ScoreboardUpdater {
     private static final ScoreboardUpdaterRank SELF = new ScoreboardUpdaterRank(null);
     private String target;
@@ -76,5 +75,4 @@ public class ScoreboardUpdaterRank implements ScoreboardUpdater {
     public McmmoScoreboardType getType() {
         return McmmoScoreboardType.PLAYER_RANK;
     }
-
 }
