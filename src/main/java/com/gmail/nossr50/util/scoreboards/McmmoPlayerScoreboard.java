@@ -1,18 +1,13 @@
 package com.gmail.nossr50.util.scoreboards;
 
-import java.util.Set;
-
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 
 import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.datatypes.player.McMMOPlayer;
 import com.gmail.nossr50.runnables.scoreboards.ScoreboardRevertTask;
-import com.gmail.nossr50.util.StringUtils;
 import com.gmail.nossr50.util.player.UserManager;
 
 /**
@@ -42,6 +37,7 @@ public class McmmoPlayerScoreboard {
         ;
     }
 
+
     public McmmoPlayerScoreboard(String player, Scoreboard toUse) {
         this.player = player;
         scoreboard = toUse;
@@ -60,18 +56,25 @@ public class McmmoPlayerScoreboard {
         return UserManager.getPlayer(player);
     }
 
+
     public ScoreboardUpdater getUpdater() {
         return handler;
     }
 
-    public void setUpdater(ScoreboardUpdater u) {
-        Validate.notNull(u);
-        handler = u;
+    /**
+     * Set the ScoreboardUpdater for this McmmoPlayerScoreboard.
+     * If the provided updater is null, {@link ScoreboardUpdaterEmpty#get()}
+     * will be substituted.
+     * @param updater new ScoreboardUpdater
+     */
+    public void setUpdater(ScoreboardUpdater updater) {
+        if (updater == null) {
+            handler = ScoreboardUpdaterEmpty.get();
+        } else {
+            handler = updater;
+        }
     }
 
-    public Scoreboard getScoreboard() {
-        return scoreboard;
-    }
 
     /**
      * Schedule a task to revert the player's scoreboard from ours to its
@@ -93,6 +96,7 @@ public class McmmoPlayerScoreboard {
             // don't want to revert to ourself. This will happen.
             oldScoreboard = revertTo;
         }
+
         if (delay != -1) { // Don't schedule a task if indefinite
             revertTask = Bukkit.getScheduler().runTaskLater(mcMMO.p, new ScoreboardRevertTask(this), delay * 20); // seconds * 20
         } else {
@@ -104,6 +108,11 @@ public class McmmoPlayerScoreboard {
         if (revertTask != null) {
             revertTask.cancel();
         }
+    }
+
+
+    public Scoreboard getScoreboard() {
+        return scoreboard;
     }
 
     public Scoreboard getOldScoreboard() {

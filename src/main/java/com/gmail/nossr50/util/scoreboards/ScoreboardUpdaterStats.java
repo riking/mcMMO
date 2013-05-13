@@ -25,6 +25,7 @@ public class ScoreboardUpdaterStats implements ScoreboardUpdater {
     }
     public static ScoreboardUpdaterStats getSelfInstance() { return SELF; }
 
+
     public boolean needsUpdatingEver() { return true; }
     public boolean needsUpdatingOnSelfLevelUp(SkillType skill) { return false; }
     public boolean needsUpdatingOnSelfXPChange(SkillType skill) { return false; }
@@ -43,10 +44,12 @@ public class ScoreboardUpdaterStats implements ScoreboardUpdater {
             if (skill.isChildSkill() || (pl != null && !Permissions.skillEnabled(pl, skill))) {
                 continue;
             }
+
             OfflinePlayer title = server.getOfflinePlayer(SkillUtils.getSkillName(skill));
             int val = profile.getSkillLevel(skill);
             obj.getScore(title).setScore(val);
         }
+
         OfflinePlayer title = server.getOfflinePlayer(ChatColor.GOLD + "Power Level");
         int pwrlvl = mcplayer.getPowerLevel();
         obj.getScore(title).setScore(pwrlvl);
