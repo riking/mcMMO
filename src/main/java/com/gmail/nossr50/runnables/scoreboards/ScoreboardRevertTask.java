@@ -13,6 +13,6 @@ public class ScoreboardRevertTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        ScoreboardManager.handleRevert(wrapper);
+        ScoreboardManager.doRevert(wrapper.getBukkitPlayer());
     }
 }
