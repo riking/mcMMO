@@ -35,4 +35,6 @@ public abstract class DatabaseManager {
     public abstract List<String> loadPlayerData(String playerName);
 
     public abstract boolean convert(String[] character) throws Exception;
+
+    public abstract boolean checkConnected();
 }

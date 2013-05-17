@@ -566,4 +566,9 @@ public final class FlatfileDatabaseManager extends DatabaseManager {
         // Not implemented
         return false;
     }
+
+    public boolean checkConnected() {
+        // Not implemented
+        return false;
+    }
 }
