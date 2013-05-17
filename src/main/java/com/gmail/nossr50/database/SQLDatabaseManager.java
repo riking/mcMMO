@@ -985,10 +985,6 @@ public final class SQLDatabaseManager extends DatabaseManager {
         return result;
     }
 
-
-
-
-
     public void writeMissingRows(int id) {
         try {
             PreparedStatement statement = SQLStatements.getInstance().getStatement("missingExperience");
@@ -1037,7 +1033,6 @@ public final class SQLDatabaseManager extends DatabaseManager {
             printErrors(ex);
         }
     }
-
 
     private int readId(String playerName) {
         try {
