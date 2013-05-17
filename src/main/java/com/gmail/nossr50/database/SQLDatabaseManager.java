@@ -766,13 +766,15 @@ public final class SQLDatabaseManager {
         }
     }
 
-    public static HashMap<Integer, ArrayList<String>> readLeaderboard(String skill, int page) {
+    public static HashMap<Integer, ArrayList<String>> readLeaderboard(String skill, int page, int entriesPer) {
         ResultSet resultSet = null;
         HashMap<Integer, ArrayList<String>> rows = new HashMap<Integer, ArrayList<String>>();
 
         if (checkConnected()) {
             try {
                 PreparedStatement statement = SQLStatements.getInstance().getStatement("mctop_" + skill);
+                statement.setInt(1, (page * entriesPer) - entriesPer);
+                statement.setInt(2, entriesPer);
                 resultSet = statement.executeQuery();
 
                 while (resultSet.next()) {

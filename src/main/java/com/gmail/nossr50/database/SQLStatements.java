@@ -86,7 +86,7 @@ public class SQLStatements {
             ));
             statements.put("mctop_" + skill.name(),  conn.prepareStatement(
                 "SELECT " + skill.name().toLowerCase() + ", user, NOW() FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON (user_id = id) WHERE " + 
-                skill.name().toLowerCase() + " > 0 ORDER BY " + skill.name().toLowerCase() + " DESC, user LIMIT ?, 10"
+                skill.name().toLowerCase() + " > 0 ORDER BY " + skill.name().toLowerCase() + " DESC, user LIMIT ?, ?"
             ));
         }
         statements.put("mcrank_ALL_A", conn.prepareStatement(
@@ -106,7 +106,7 @@ public class SQLStatements {
         ));
         statements.put("mctop_ALL",  conn.prepareStatement(
             "SELECT taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing, user, NOW() FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON (user_id = id) WHERE " + 
-            "taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing > 0 ORDER BY taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing DESC, user LIMIT ?, 10"
+            "taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing > 0 ORDER BY taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing DESC, user LIMIT ?, ?"
         ));
     }
 

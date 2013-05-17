@@ -22,7 +22,7 @@ public class MctopCommandAsyncTask extends BukkitRunnable {
 
     @Override
     public void run() { 
-        final Collection<ArrayList<String>> userStats = SQLDatabaseManager.readLeaderboard(skill, page).values();
+        final Collection<ArrayList<String>> userStats = SQLDatabaseManager.readLeaderboard(skill, page, 10).values();
 
         new MctopCommandDisplayTask(userStats, page, skill, sender).runTaskLater(mcMMO.p, 1);
     }
