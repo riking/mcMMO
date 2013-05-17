@@ -36,7 +36,7 @@ public final class FlatfileDatabaseManager extends DatabaseManager {
     protected FlatfileDatabaseManager() {
         usersFile = new File(mcMMO.getUsersFilePath());
         createFlatfileDatabase();
-        FlatfileDatabaseManager.updateLeaderboards();
+        updateLeaderboards();
     }
     
     private void createFlatfileDatabase() {
