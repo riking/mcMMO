@@ -152,6 +152,13 @@ public final class SQLDatabaseManager {
         checkDatabaseStructure(DatabaseUpdateType.MOB_HEALTHBARS);
         checkDatabaseStructure(DatabaseUpdateType.PARTY_NAMES);
         checkDatabaseStructure(DatabaseUpdateType.KILL_ORPHANS);
+        
+        try {
+            new SQLStatements(connection, Config.getInstance().getMySQLTablePrefix());
+        }
+        catch (SQLException ex) {
+            printErrors(ex);
+        }
     }
 
     /**
@@ -234,45 +241,8 @@ public final class SQLDatabaseManager {
         return rows;
     }
 
-    /**
-     * Get the Integer. Only return first row / first field.
-     *
-     * @param sql SQL query to execute
-     * @return the value in the first row / first field
-     */
-    public static int getInt(String sql) {
-        if (!checkConnected()) {
-            return 0;
-        }
 
-        int result = 0;
 
-        PreparedStatement statement = null;
-
-        try {
-            statement = connection.prepareStatement(sql);
-            ResultSet resultSet = statement.executeQuery();
-
-            if (resultSet.next()) {
-                result = resultSet.getInt(1);
-            }
-        }
-        catch (SQLException ex) {
-            printErrors(ex);
-        }
-        finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    printErrors(e);
-                }
-            }
-        }
-
-        return result;
-    }
 
     /**
      * Check connection status and re-establish if dead or stale.
@@ -415,17 +385,8 @@ public final class SQLDatabaseManager {
 
         if (checkConnected()) {
             try {
-                for (SkillType skillType : SkillType.values()) {
-                    if (skillType.isChildSkill()) {
-                        continue;
-                    }
-
-                    String skillName = skillType.name().toLowerCase();
-                    String sql = "SELECT COUNT(*) AS rank FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id WHERE " + skillName + " > 0 " +
-                                 "AND " + skillName + " > (SELECT " + skillName + " FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id " +
-                                 "WHERE user = ?)";
-
-                    PreparedStatement statement = connection.prepareStatement(sql);
+                for (SkillType skillType : SkillType.nonChildSkills()) {
+                    PreparedStatement statement = SQLStatements.getInstance().getStatement("mcrank_" + skillType.name() + "_A");
                     statement.setString(1, playerName);
                     resultSet = statement.executeQuery();
 
@@ -433,11 +394,8 @@ public final class SQLDatabaseManager {
 
                     int rank = resultSet.getInt("rank");
 
-                    sql = "SELECT user, " + skillName + " FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id WHERE " + skillName + " > 0 " +
-                          "AND " + skillName + " = (SELECT " + skillName + " FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id " +
-                          "WHERE user = '" + playerName + "') ORDER BY user";
-
-                    statement = connection.prepareStatement(sql);
+                    statement = SQLStatements.getInstance().getStatement("mcrank_" + skillType.name() + "_B");
+                    
                     resultSet = statement.executeQuery();
 
                     while (resultSet.next()) {
@@ -447,16 +405,10 @@ public final class SQLDatabaseManager {
                         }
                     }
 
-                    statement.close();
+                    resultSet.close();
                 }
 
-                String sql = "SELECT COUNT(*) AS rank FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id " +
-                             "WHERE taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing > 0 " +
-                             "AND taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing > " +
-                             "(SELECT taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing " +
-                             "FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id WHERE user = ?)";
-
-                PreparedStatement statement = connection.prepareStatement(sql);
+                PreparedStatement statement = SQLStatements.getInstance().getStatement("mcrank_ALL_A");
                 statement.setString(1, playerName);
                 resultSet = statement.executeQuery();
 
@@ -464,14 +416,8 @@ public final class SQLDatabaseManager {
 
                 int rank = resultSet.getInt("rank");
 
-                sql = "SELECT user, taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing " +
-                      "FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id " +
-                      "WHERE taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing > 0 " +
-                      "AND taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing = " +
-                      "(SELECT taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing " +
-                      "FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id WHERE user = ?) ORDER BY user";
-
-                statement = connection.prepareStatement(sql);
+                SQLStatements.getInstance().getStatement("mcrank_ALL_B");
+                
                 statement.setString(1, playerName);
                 resultSet = statement.executeQuery();
 
@@ -482,7 +428,7 @@ public final class SQLDatabaseManager {
                     }
                 }
 
-                statement.close();
+                resultSet.close();
             }
             catch (SQLException ex) {
                 printErrors(ex);
@@ -663,5 +609,210 @@ public final class SQLDatabaseManager {
         mcMMO.p.getLogger().severe("SQLException: " + ex.getMessage());
         mcMMO.p.getLogger().severe("SQLState: " + ex.getSQLState());
         mcMMO.p.getLogger().severe("VendorError: " + ex.getErrorCode());
+    }
+
+    public static ArrayList<String> readRow(PreparedStatement statement) {
+        ResultSet resultSet = null;
+        ArrayList<String> playerData = new ArrayList<String>();
+
+        if (checkConnected()) {
+            try {
+                resultSet = statement.executeQuery();
+
+                if (resultSet.next()) {
+                    for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
+                        playerData.add(resultSet.getString(i));
+                    }
+                }
+            }
+            catch (SQLException ex) {
+                printErrors(ex);
+            }
+            finally {
+                try {
+                    resultSet.close();
+                }
+                catch (Exception e) { }
+            }
+        }
+
+        return playerData;
+    }
+
+    /**
+     * Get the Integer. Only return first row / first field.
+     *
+     * @param sql SQL query to execute
+     * @return the value in the first row / first field
+     */
+    public static int readInt(PreparedStatement statement) {
+        if (!checkConnected()) {
+            return 0;
+        }
+
+        int result = 0;
+
+        ResultSet resultSet = null;
+
+        try {
+            resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                result = resultSet.getInt(1);
+            }
+        }
+        catch (SQLException ex) {
+            printErrors(ex);
+        }
+        finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                }
+                catch (Exception e) {
+                    // Ignore
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public static void newUser(String playerName) {
+        try {
+            PreparedStatement statement = SQLStatements.getInstance().getStatement("newUser");
+            statement.setString(1, playerName);
+            statement.setLong(2, System.currentTimeMillis() / Misc.TIME_CONVERSION_FACTOR);
+            statement.execute();
+
+            writeMissingRows(readId(playerName));
+        }
+        catch (SQLException ex) {
+            printErrors(ex);
+        }
+    }
+    
+    public static void saveIntegers(PreparedStatement statement, int... args) {
+        try {
+            int i = 1;
+
+            for (int arg : args) {
+                statement.setInt(i++, arg);
+            }
+
+            statement.execute();
+        }
+        catch (SQLException ex) {
+            printErrors(ex);
+        }
+    }
+
+    public static int readId(String playerName) {
+        try {
+            PreparedStatement statement = SQLStatements.getInstance().getStatement("getId");
+            statement.setString(1, playerName);
+            return readInt(statement);
+        }
+        catch (SQLException ex) {
+            printErrors(ex);
+        }
+        return 0;
+    }
+
+    public static void saveLogin(int id, long login) {
+        try {
+            PreparedStatement statement = SQLStatements.getInstance().getStatement("saveLogin");
+            statement.setLong(1, login);
+            statement.setInt(2, id);
+            statement.execute();
+        }
+        catch (SQLException ex) {
+            printErrors(ex);
+        }
+    }
+
+    public static ArrayList<String> readPlayerData(String playerName) {
+        try {
+            PreparedStatement statement = SQLStatements.getInstance().getStatement("loadUser");
+            statement.setString(1, playerName);
+            return readRow(statement);
+        }
+        catch (SQLException ex) {
+            printErrors(ex);
+        }
+        return new ArrayList<String>();
+    }
+
+    public static void writeMissingRows(int id) {
+        try {
+            PreparedStatement statement = SQLStatements.getInstance().getStatement("missingExperience");
+            statement.setInt(1, id);
+            statement.execute();
+
+            statement = SQLStatements.getInstance().getStatement("missingSkills");
+            statement.setInt(1, id);
+            statement.execute();
+
+            statement = SQLStatements.getInstance().getStatement("missingCooldowns");
+            statement.setInt(1, id);
+            statement.execute();
+
+            statement = SQLStatements.getInstance().getStatement("missingHuds");
+            statement.setInt(1, id);
+            statement.execute();
+        }
+        catch (SQLException ex) {
+            printErrors(ex);
+        }
+    }
+
+    public static HashMap<Integer, ArrayList<String>> readLeaderboard(String skill, int page) {
+        ResultSet resultSet = null;
+        HashMap<Integer, ArrayList<String>> rows = new HashMap<Integer, ArrayList<String>>();
+
+        if (checkConnected()) {
+            try {
+                PreparedStatement statement = SQLStatements.getInstance().getStatement("mctop_" + skill);
+                resultSet = statement.executeQuery();
+
+                while (resultSet.next()) {
+                    ArrayList<String> column = new ArrayList<String>();
+
+                    for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
+                        column.add(resultSet.getString(i));
+                    }
+
+                    rows.put(resultSet.getRow(), column);
+                }
+            }
+            catch (SQLException ex) {
+                printErrors(ex);
+            }
+            finally {
+                if (resultSet != null) {
+                    try {
+                        resultSet.close();
+                    }
+                    catch (SQLException e) {
+                        printErrors(e);
+                    }
+                }
+            }
+        }
+
+        return rows;
+    }
+
+    public static void saveHuds(int userId, String hudType, String mobHealthBar) {
+        try {
+            PreparedStatement statement = SQLStatements.getInstance().getStatement("saveHuds");
+            statement.setString(1, hudType);
+            statement.setString(2, mobHealthBar);
+            statement.setInt(3, userId);
+            statement.execute();
+        }
+        catch (SQLException ex) {
+            printErrors(ex);
+        }
     }
 }

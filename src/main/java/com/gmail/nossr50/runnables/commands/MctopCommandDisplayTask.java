@@ -13,23 +13,23 @@ import com.gmail.nossr50.util.StringUtils;
 public class MctopCommandDisplayTask extends BukkitRunnable {
     private Collection<ArrayList<String>> userStats;
     private CommandSender sender;
-    private String query;
+    private String skill;
     private int page;
 
-    public MctopCommandDisplayTask(Collection<ArrayList<String>> userStats, int page, String query, CommandSender sender) {
+    public MctopCommandDisplayTask(Collection<ArrayList<String>> userStats, int page, String skill, CommandSender sender) {
         this.userStats = userStats;
         this.page = page;
-        this.query = query;
+        this.skill = skill;
         this.sender = sender;
     }
 
     @Override
     public void run() {
-        if (query.equalsIgnoreCase("taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing")) {
+        if (skill.equalsIgnoreCase("all")) {
             sender.sendMessage(LocaleLoader.getString("Commands.PowerLevel.Leaderboard"));
         }
         else {
-            sender.sendMessage(LocaleLoader.getString("Commands.Skill.Leaderboard", StringUtils.getCapitalized(query)));
+            sender.sendMessage(LocaleLoader.getString("Commands.Skill.Leaderboard", StringUtils.getCapitalized(skill)));
         }
 
         int place = (page * 10) - 9;

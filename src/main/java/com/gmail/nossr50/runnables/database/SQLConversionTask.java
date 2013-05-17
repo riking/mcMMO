@@ -6,13 +6,11 @@ import java.io.FileReader;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.database.SQLDatabaseManager;
-import com.gmail.nossr50.util.Misc;
+import com.gmail.nossr50.database.SQLStatements;
 import com.gmail.nossr50.util.StringUtils;
 
 public class SQLConversionTask extends BukkitRunnable {
-    private String tablePrefix = Config.getInstance().getMySQLTablePrefix();
 
     @Override
     public void run() {
@@ -158,114 +156,58 @@ public class SQLConversionTask extends BukkitRunnable {
                 }
 
                 // Check to see if the user is in the DB
-                id = SQLDatabaseManager.getInt("SELECT id FROM "
-                        + tablePrefix
-                        + "users WHERE user = '" + playerName + "'");
+                id = SQLDatabaseManager.readId(playerName);
 
                 if (id > 0) {
                     theCount++;
 
                     // Update the skill values
-                    SQLDatabaseManager.write("UPDATE "
-                            + tablePrefix
-                            + "users SET lastlogin = " + 0
-                            + " WHERE id = " + id);
-                    SQLDatabaseManager.write("UPDATE "
-                            + tablePrefix
-                            + "skills SET "
-                            + "  taming = taming+" + StringUtils.getInt(taming)
-                            + ", mining = mining+" + StringUtils.getInt(mining)
-                            + ", repair = repair+" + StringUtils.getInt(repair)
-                            + ", woodcutting = woodcutting+" + StringUtils.getInt(woodcutting)
-                            + ", unarmed = unarmed+" + StringUtils.getInt(unarmed)
-                            + ", herbalism = herbalism+" + StringUtils.getInt(herbalism)
-                            + ", excavation = excavation+" + StringUtils.getInt(excavation)
-                            + ", archery = archery+" + StringUtils.getInt(archery)
-                            + ", swords = swords+" + StringUtils.getInt(swords)
-                            + ", axes = axes+" + StringUtils.getInt(axes)
-                            + ", acrobatics = acrobatics+" + StringUtils.getInt(acrobatics)
-                            + ", fishing = fishing+" + StringUtils.getInt(fishing)
-                            + " WHERE user_id = " + id);
-                    SQLDatabaseManager.write("UPDATE "
-                            + tablePrefix
-                            + "experience SET "
-                            + "  taming = " + StringUtils.getInt(tamingXP)
-                            + ", mining = " + StringUtils.getInt(miningXP)
-                            + ", repair = " + StringUtils.getInt(repairXP)
-                            + ", woodcutting = " + StringUtils.getInt(woodCuttingXP)
-                            + ", unarmed = " + StringUtils.getInt(unarmedXP)
-                            + ", herbalism = " + StringUtils.getInt(herbalismXP)
-                            + ", excavation = " + StringUtils.getInt(excavationXP)
-                            + ", archery = " + StringUtils.getInt(archeryXP)
-                            + ", swords = " + StringUtils.getInt(swordsXP)
-                            + ", axes = " + StringUtils.getInt(axesXP)
-                            + ", acrobatics = " + StringUtils.getInt(acrobaticsXP)
-                            + ", fishing = " + StringUtils.getInt(fishingXP)
-                            + " WHERE user_id = " + id);
+                    SQLDatabaseManager.saveLogin(id, 0L);
+                    
+                    SQLDatabaseManager.saveIntegers(SQLStatements.getInstance().getStatement("saveSkills"), 
+                            StringUtils.getInt(taming), StringUtils.getInt(mining),
+                            StringUtils.getInt(repair), StringUtils.getInt(woodcutting),
+                            StringUtils.getInt(unarmed), StringUtils.getInt(herbalism),
+                            StringUtils.getInt(excavation), StringUtils.getInt(archery),
+                            StringUtils.getInt(swords), StringUtils.getInt(axes),
+                            StringUtils.getInt(acrobatics), StringUtils.getInt(fishing),
+                            id);
+                    SQLDatabaseManager.saveIntegers(SQLStatements.getInstance().getStatement("saveExperience"), 
+                            StringUtils.getInt(tamingXP), StringUtils.getInt(miningXP),
+                            StringUtils.getInt(repairXP), StringUtils.getInt(woodCuttingXP),
+                            StringUtils.getInt(unarmedXP), StringUtils.getInt(herbalismXP),
+                            StringUtils.getInt(excavationXP), StringUtils.getInt(archeryXP),
+                            StringUtils.getInt(swordsXP), StringUtils.getInt(axesXP),
+                            StringUtils.getInt(acrobaticsXP), StringUtils.getInt(fishingXP),
+                            id);
                 }
                 else {
                     theCount++;
 
                     // Create the user in the DB
-                    SQLDatabaseManager.write("INSERT INTO "
-                            + tablePrefix
-                            + "users (user, lastlogin) VALUES ('"
-                            + playerName + "',"
-                            + System.currentTimeMillis() / Misc.TIME_CONVERSION_FACTOR + ")");
-                    id = SQLDatabaseManager.getInt("SELECT id FROM "
-                            + tablePrefix
-                            + "users WHERE user = '"
-                            + playerName + "'");
-                    SQLDatabaseManager.write("INSERT INTO "
-                            + tablePrefix
-                            + "skills (user_id) VALUES (" + id + ")");
-                    SQLDatabaseManager.write("INSERT INTO "
-                            + tablePrefix
-                            + "experience (user_id) VALUES (" + id
-                            + ")");
+                    SQLDatabaseManager.newUser(playerName);
+                    
+                    id = SQLDatabaseManager.readId(playerName);
+
                     // Update the skill values
-                    SQLDatabaseManager.write("UPDATE "
-                            + tablePrefix
-                            + "users SET lastlogin = " + 0
-                            + " WHERE id = " + id);
-                    /*
-                    Database.write("UPDATE "
-                            + tablePrefix
-                            + "users SET party = '" + party
-                            + "' WHERE id = " + id);
-                    */
-                    SQLDatabaseManager.write("UPDATE "
-                            + tablePrefix
-                            + "skills SET "
-                            + "  taming = taming+" + StringUtils.getInt(taming)
-                            + ", mining = mining+" + StringUtils.getInt(mining)
-                            + ", repair = repair+" + StringUtils.getInt(repair)
-                            + ", woodcutting = woodcutting+" + StringUtils.getInt(woodcutting)
-                            + ", unarmed = unarmed+" + StringUtils.getInt(unarmed)
-                            + ", herbalism = herbalism+" + StringUtils.getInt(herbalism)
-                            + ", excavation = excavation+" + StringUtils.getInt(excavation)
-                            + ", archery = archery+" + StringUtils.getInt(archery)
-                            + ", swords = swords+" + StringUtils.getInt(swords)
-                            + ", axes = axes+" + StringUtils.getInt(axes)
-                            + ", acrobatics = acrobatics+" + StringUtils.getInt(acrobatics)
-                            + ", fishing = fishing+" + StringUtils.getInt(fishing)
-                            + " WHERE user_id = " + id);
-                    SQLDatabaseManager.write("UPDATE "
-                            + tablePrefix
-                            + "experience SET "
-                            + "  taming = " + StringUtils.getInt(tamingXP)
-                            + ", mining = " + StringUtils.getInt(miningXP)
-                            + ", repair = " + StringUtils.getInt(repairXP)
-                            + ", woodcutting = " + StringUtils.getInt(woodCuttingXP)
-                            + ", unarmed = " + StringUtils.getInt(unarmedXP)
-                            + ", herbalism = " + StringUtils.getInt(herbalismXP)
-                            + ", excavation = " + StringUtils.getInt(excavationXP)
-                            + ", archery = " + StringUtils.getInt(archeryXP)
-                            + ", swords = " + StringUtils.getInt(swordsXP)
-                            + ", axes = " + StringUtils.getInt(axesXP)
-                            + ", acrobatics = " + StringUtils.getInt(acrobaticsXP)
-                            + ", fishing = " + StringUtils.getInt(fishingXP)
-                            + " WHERE user_id = " + id);
+                    SQLDatabaseManager.saveLogin(id, 0L);
+                    
+                    SQLDatabaseManager.saveIntegers(SQLStatements.getInstance().getStatement("saveSkills"), 
+                            StringUtils.getInt(taming), StringUtils.getInt(mining),
+                            StringUtils.getInt(repair), StringUtils.getInt(woodcutting),
+                            StringUtils.getInt(unarmed), StringUtils.getInt(herbalism),
+                            StringUtils.getInt(excavation), StringUtils.getInt(archery),
+                            StringUtils.getInt(swords), StringUtils.getInt(axes),
+                            StringUtils.getInt(acrobatics), StringUtils.getInt(fishing),
+                            id);
+                    SQLDatabaseManager.saveIntegers(SQLStatements.getInstance().getStatement("saveExperience"), 
+                            StringUtils.getInt(tamingXP), StringUtils.getInt(miningXP),
+                            StringUtils.getInt(repairXP), StringUtils.getInt(woodCuttingXP),
+                            StringUtils.getInt(unarmedXP), StringUtils.getInt(herbalismXP),
+                            StringUtils.getInt(excavationXP), StringUtils.getInt(archeryXP),
+                            StringUtils.getInt(swordsXP), StringUtils.getInt(axesXP),
+                            StringUtils.getInt(acrobaticsXP), StringUtils.getInt(fishingXP),
+                            id);
                 }
             }
 

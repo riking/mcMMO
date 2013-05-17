@@ -15,6 +15,7 @@ import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.config.spout.SpoutConfig;
 import com.gmail.nossr50.database.SQLDatabaseManager;
+import com.gmail.nossr50.database.SQLStatements;
 import com.gmail.nossr50.datatypes.MobHealthbarType;
 import com.gmail.nossr50.datatypes.skills.AbilityType;
 import com.gmail.nossr50.datatypes.skills.SkillType;
@@ -285,25 +286,10 @@ public class PlayerProfile {
     }
 
     private boolean loadMySQL() {
-        String tablePrefix = Config.getInstance().getMySQLTablePrefix();
-
-        ArrayList<String> playerData = SQLDatabaseManager.read(
-                "SELECT " +
-                "u.id, " +
-                "s.taming, s.mining, s.repair, s.woodcutting, s.unarmed, s.herbalism, s.excavation, s.archery, s.swords, s.axes, s.acrobatics, s.fishing, " +
-                "e.taming, e.mining, e.repair, e.woodcutting, e.unarmed, e.herbalism, e.excavation, e.archery, e.swords, e.axes, e.acrobatics, e.fishing, " +
-                "c.taming, c.mining, c.repair, c.woodcutting, c.unarmed, c.herbalism, c.excavation, c.archery, c.swords, c.axes, c.acrobatics, c.blast_mining, " +
-                "h.hudtype, h.mobhealthbar " +
-                "FROM " + tablePrefix + "users u " +
-                "JOIN " + tablePrefix + "skills s ON (u.id = s.user_id) " +
-                "JOIN " + tablePrefix + "experience e ON (u.id = e.user_id) " +
-                "JOIN " + tablePrefix + "cooldowns c ON (u.id = c.user_id) " +
-                "JOIN " + tablePrefix + "huds h ON (u.id = h.user_id) " +
-                "WHERE u.user = '" + playerName + "'"
-                ).get(1);
+        ArrayList<String> playerData = SQLDatabaseManager.readPlayerData(playerName);
 
         if (playerData == null || playerData.size() == 0) {
-            userId = SQLDatabaseManager.getInt("SELECT id FROM " + tablePrefix + "users WHERE user = '" + playerName + "'");
+            userId = SQLDatabaseManager.readId(playerName);
 
             // Check if user doesn't exist
             if (userId == 0) {
@@ -311,26 +297,10 @@ public class PlayerProfile {
             }
 
             // Write missing table rows
-            SQLDatabaseManager.write("INSERT IGNORE INTO " + tablePrefix + "skills (user_id) VALUES (" + userId + ")");
-            SQLDatabaseManager.write("INSERT IGNORE INTO " + tablePrefix + "experience (user_id) VALUES (" + userId + ")");
-            SQLDatabaseManager.write("INSERT IGNORE INTO " + tablePrefix + "cooldowns (user_id) VALUES (" + userId + ")");
-            SQLDatabaseManager.write("INSERT IGNORE INTO " + tablePrefix + "huds (user_id, mobhealthbar) VALUES (" + userId + ",'" + mobHealthbarType.name() + "')");
+            SQLDatabaseManager.writeMissingRows(userId);
 
             // Re-read data
-            playerData = SQLDatabaseManager.read(
-                    "SELECT " +
-                    "u.id, " +
-                    "s.taming, s.mining, s.repair, s.woodcutting, s.unarmed, s.herbalism, s.excavation, s.archery, s.swords, s.axes, s.acrobatics, s.fishing, " +
-                    "e.taming, e.mining, e.repair, e.woodcutting, e.unarmed, e.herbalism, e.excavation, e.archery, e.swords, e.axes, e.acrobatics, e.fishing, " +
-                    "c.taming, c.mining, c.repair, c.woodcutting, c.unarmed, c.herbalism, c.excavation, c.archery, c.swords, c.axes, c.acrobatics, c.blast_mining, " +
-                    "h.hudtype, h.mobhealthbar " +
-                    "FROM " + tablePrefix + "users u " +
-                    "JOIN " + tablePrefix + "skills s ON (u.id = e.user_id) " +
-                    "JOIN " + tablePrefix + "experience e ON (u.id = e.user_id) " +
-                    "JOIN " + tablePrefix + "cooldowns c ON (u.id = c.user_id) " +
-                    "JOIN " + tablePrefix + "huds h ON (u.id = h.user_id) " +
-                    "WHERE u.user = '" + playerName + "'"
-                    ).get(1);
+            playerData = SQLDatabaseManager.readPlayerData(playerName);
         }
 
         userId = Integer.valueOf(playerData.get(0));
@@ -382,15 +352,8 @@ public class PlayerProfile {
     }
 
     private void addMySQLPlayer() {
-        String tablePrefix = Config.getInstance().getMySQLTablePrefix();
-
-        SQLDatabaseManager.write("INSERT INTO " + tablePrefix + "users (user, lastlogin) VALUES ('" + playerName + "'," + System.currentTimeMillis() / Misc.TIME_CONVERSION_FACTOR + ")");
-        userId = SQLDatabaseManager.getInt("SELECT id FROM " + tablePrefix + "users WHERE user = '" + playerName + "'");
-
-        SQLDatabaseManager.write("INSERT INTO " + tablePrefix + "huds (user_id, mobhealthbar) VALUES (" + userId + ", '" + mobHealthbarType.name() + "')");
-        SQLDatabaseManager.write("INSERT INTO " + tablePrefix + "cooldowns (user_id) VALUES (" + userId + ")");
-        SQLDatabaseManager.write("INSERT INTO " + tablePrefix + "skills (user_id) VALUES (" + userId + ")");
-        SQLDatabaseManager.write("INSERT INTO " + tablePrefix + "experience (user_id) VALUES (" + userId + ")");
+        SQLDatabaseManager.newUser(playerName);
+        userId = SQLDatabaseManager.readId(playerName);
     }
 
 
@@ -517,51 +480,47 @@ public class PlayerProfile {
 
     private void saveMySQL() {
         if (Config.getInstance().getUseMySQL()) {
-            String tablePrefix = Config.getInstance().getMySQLTablePrefix();
-
-            SQLDatabaseManager.write("UPDATE " + tablePrefix + "users SET lastlogin = " + ((int) (System.currentTimeMillis() / Misc.TIME_CONVERSION_FACTOR)) + " WHERE id = " + userId);
-            SQLDatabaseManager.write("UPDATE " + tablePrefix + "huds SET "
-                    + "  hudtype = '" + (hudType == null ? "STANDARD" : hudType.toString() + "'")
-                    + ", mobhealthbar = '" + (mobHealthbarType == null ? Config.getInstance().getMobHealthbarDefault().toString() : mobHealthbarType.toString() + "'")
-                    + "  WHERE user_id = " + userId);
-            SQLDatabaseManager.write("UPDATE " + tablePrefix + "cooldowns SET "
-                    + "  mining = " + skillsDATS.get(AbilityType.SUPER_BREAKER)
-                    + ", woodcutting = " + skillsDATS.get(AbilityType.TREE_FELLER)
-                    + ", unarmed = " + skillsDATS.get(AbilityType.BERSERK)
-                    + ", herbalism = " + skillsDATS.get(AbilityType.GREEN_TERRA)
-                    + ", excavation = " + skillsDATS.get(AbilityType.GIGA_DRILL_BREAKER)
-                    + ", swords = " + skillsDATS.get(AbilityType.SERRATED_STRIKES)
-                    + ", axes = " + skillsDATS.get(AbilityType.SKULL_SPLITTER)
-                    + ", blast_mining = " + skillsDATS.get(AbilityType.BLAST_MINING)
-                    + "  WHERE user_id = " + userId);
-            SQLDatabaseManager.write("UPDATE " + tablePrefix + "skills SET "
-                    + "  taming = " + skills.get(SkillType.TAMING)
-                    + ", mining = " + skills.get(SkillType.MINING)
-                    + ", repair = " + skills.get(SkillType.REPAIR)
-                    + ", woodcutting = " + skills.get(SkillType.WOODCUTTING)
-                    + ", unarmed = " + skills.get(SkillType.UNARMED)
-                    + ", herbalism = " + skills.get(SkillType.HERBALISM)
-                    + ", excavation = " + skills.get(SkillType.EXCAVATION)
-                    + ", archery = " + skills.get(SkillType.ARCHERY)
-                    + ", swords = " + skills.get(SkillType.SWORDS)
-                    + ", axes = " + skills.get(SkillType.AXES)
-                    + ", acrobatics = " + skills.get(SkillType.ACROBATICS)
-                    + ", fishing = " + skills.get(SkillType.FISHING)
-                    + "  WHERE user_id = " + userId);
-            SQLDatabaseManager.write("UPDATE " + tablePrefix + "experience SET "
-                    + "  taming = " + getSkillXpLevel(SkillType.TAMING)
-                    + ", mining = " + getSkillXpLevel(SkillType.MINING)
-                    + ", repair = " + getSkillXpLevel(SkillType.REPAIR)
-                    + ", woodcutting = " + getSkillXpLevel(SkillType.WOODCUTTING)
-                    + ", unarmed = " + getSkillXpLevel(SkillType.UNARMED)
-                    + ", herbalism = " + getSkillXpLevel(SkillType.HERBALISM)
-                    + ", excavation = " + getSkillXpLevel(SkillType.EXCAVATION)
-                    + ", archery = " + getSkillXpLevel(SkillType.ARCHERY)
-                    + ", swords = " + getSkillXpLevel(SkillType.SWORDS)
-                    + ", axes = " + getSkillXpLevel(SkillType.AXES)
-                    + ", acrobatics = " + getSkillXpLevel(SkillType.ACROBATICS)
-                    + ", fishing = " + getSkillXpLevel(SkillType.FISHING)
-                    + "  WHERE user_id = " + userId);
+            userId = SQLDatabaseManager.readId(playerName);
+            SQLDatabaseManager.saveLogin(userId, ((int) (System.currentTimeMillis() / Misc.TIME_CONVERSION_FACTOR)));
+            SQLDatabaseManager.saveHuds(userId, (hudType == null ? "STANDARD" : hudType.toString()), (mobHealthbarType == null ? Config.getInstance().getMobHealthbarDefault().toString() : mobHealthbarType.toString()));
+            SQLDatabaseManager.saveIntegers(SQLStatements.getInstance().getStatement("saveCooldowns"),
+                    skillsDATS.get(AbilityType.SUPER_BREAKER),
+                    skillsDATS.get(AbilityType.TREE_FELLER),
+                    skillsDATS.get(AbilityType.BERSERK),
+                    skillsDATS.get(AbilityType.GREEN_TERRA),
+                    skillsDATS.get(AbilityType.GIGA_DRILL_BREAKER),
+                    skillsDATS.get(AbilityType.SERRATED_STRIKES),
+                    skillsDATS.get(AbilityType.SKULL_SPLITTER),
+                    skillsDATS.get(AbilityType.BLAST_MINING),
+                    userId);
+            SQLDatabaseManager.saveIntegers(SQLStatements.getInstance().getStatement("saveSkills"),
+                    skills.get(SkillType.TAMING),
+                    skills.get(SkillType.MINING),
+                    skills.get(SkillType.REPAIR),
+                    skills.get(SkillType.WOODCUTTING),
+                    skills.get(SkillType.UNARMED),
+                    skills.get(SkillType.HERBALISM),
+                    skills.get(SkillType.EXCAVATION),
+                    skills.get(SkillType.ARCHERY),
+                    skills.get(SkillType.SWORDS),
+                    skills.get(SkillType.AXES),
+                    skills.get(SkillType.ACROBATICS),
+                    skills.get(SkillType.FISHING),
+                    userId);
+            SQLDatabaseManager.saveIntegers(SQLStatements.getInstance().getStatement("saveExperience"),
+                    getSkillXpLevel(SkillType.TAMING),
+                    getSkillXpLevel(SkillType.MINING),
+                    getSkillXpLevel(SkillType.REPAIR),
+                    getSkillXpLevel(SkillType.WOODCUTTING),
+                    getSkillXpLevel(SkillType.UNARMED),
+                    getSkillXpLevel(SkillType.HERBALISM),
+                    getSkillXpLevel(SkillType.EXCAVATION),
+                    getSkillXpLevel(SkillType.ARCHERY),
+                    getSkillXpLevel(SkillType.SWORDS),
+                    getSkillXpLevel(SkillType.AXES),
+                    getSkillXpLevel(SkillType.ACROBATICS),
+                    getSkillXpLevel(SkillType.FISHING),
+                    userId);
         }
     }
 
