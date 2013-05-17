@@ -23,6 +23,7 @@ import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.datatypes.spout.huds.HudType;
 import com.gmail.nossr50.runnables.database.SQLReconnectTask;
 import com.gmail.nossr50.util.Misc;
+import com.gmail.nossr50.util.StringUtils;
 
 public final class SQLDatabaseManager extends DatabaseManager {
     private String connectionString;
@@ -894,5 +895,188 @@ public final class SQLDatabaseManager extends DatabaseManager {
         catch (SQLException ex) {
             printErrors(ex);
         }
+    }
+
+    public boolean convert(String[] character) throws Exception {
+        String playerName = null;
+        String mining = null;
+        String woodcutting = null;
+        String repair = null;
+        String unarmed = null;
+        String herbalism = null;
+        String excavation = null;
+        String archery = null;
+        String swords = null;
+        String axes = null;
+        String acrobatics = null;
+        String taming = null;
+        String fishing = null;
+        String miningXP = null;
+        String woodCuttingXP = null;
+        String repairXP = null;
+        String unarmedXP = null;
+        String herbalismXP = null;
+        String excavationXP = null;
+        String archeryXP = null;
+        String swordsXP = null;
+        String axesXP = null;
+        String acrobaticsXP = null;
+        String tamingXP = null;
+        String fishingXP = null;
+        int id = 0;
+        playerName = character[0];
+
+        // Check for things we don't want put in the DB
+        if (playerName == null || playerName.equalsIgnoreCase("null") || playerName.equalsIgnoreCase("#Storage place for user information")) {
+            return false;
+        }
+
+        if (character.length > 1) {
+            mining = character[1];
+        }
+
+        if (character.length > 4) {
+            miningXP = character[4];
+        }
+
+        if (character.length > 5) {
+            woodcutting = character[5];
+        }
+
+        if (character.length > 6) {
+            woodCuttingXP = character[6];
+        }
+
+        if (character.length > 7) {
+            repair = character[7];
+        }
+
+        if (character.length > 8) {
+            unarmed = character[8];
+        }
+
+        if (character.length > 9) {
+            herbalism = character[9];
+        }
+
+        if (character.length > 10) {
+            excavation = character[10];
+        }
+
+        if (character.length > 11) {
+            archery = character[11];
+        }
+
+        if (character.length > 12) {
+            swords = character[12];
+        }
+
+        if (character.length > 13) {
+            axes = character[13];
+        }
+
+        if (character.length > 14) {
+            acrobatics = character[14];
+        }
+
+        if (character.length > 15) {
+            repairXP = character[15];
+        }
+
+        if (character.length > 16) {
+            unarmedXP = character[16];
+        }
+
+        if (character.length > 17) {
+            herbalismXP = character[17];
+        }
+
+        if (character.length > 18) {
+            excavationXP = character[18];
+        }
+
+        if (character.length > 19) {
+            archeryXP = character[19];
+        }
+
+        if (character.length > 20) {
+            swordsXP = character[20];
+        }
+
+        if (character.length > 21) {
+            axesXP = character[21];
+        }
+
+        if (character.length > 22) {
+            acrobaticsXP = character[22];
+        }
+
+        if (character.length > 24) {
+            taming = character[24];
+        }
+
+        if (character.length > 25) {
+            tamingXP = character[25];
+        }
+
+        if (character.length > 34) {
+            fishing = character[34];
+        }
+
+        if (character.length > 35) {
+            fishingXP = character[35];
+        }
+
+        // Check to see if the user is in the DB
+        id = readId(playerName);
+
+        if (id > 0) {
+            // Update the skill values
+            saveLogin(id, 0L);
+            
+            saveIntegers(SQLStatements.getInstance().getStatement("saveSkills"), 
+                    StringUtils.getInt(taming), StringUtils.getInt(mining),
+                    StringUtils.getInt(repair), StringUtils.getInt(woodcutting),
+                    StringUtils.getInt(unarmed), StringUtils.getInt(herbalism),
+                    StringUtils.getInt(excavation), StringUtils.getInt(archery),
+                    StringUtils.getInt(swords), StringUtils.getInt(axes),
+                    StringUtils.getInt(acrobatics), StringUtils.getInt(fishing),
+                    id);
+            saveIntegers(SQLStatements.getInstance().getStatement("saveExperience"), 
+                    StringUtils.getInt(tamingXP), StringUtils.getInt(miningXP),
+                    StringUtils.getInt(repairXP), StringUtils.getInt(woodCuttingXP),
+                    StringUtils.getInt(unarmedXP), StringUtils.getInt(herbalismXP),
+                    StringUtils.getInt(excavationXP), StringUtils.getInt(archeryXP),
+                    StringUtils.getInt(swordsXP), StringUtils.getInt(axesXP),
+                    StringUtils.getInt(acrobaticsXP), StringUtils.getInt(fishingXP),
+                    id);
+        }
+        else {
+            // Create the user in the DB
+            newUser(playerName);
+            
+            id = readId(playerName);
+
+            // Update the skill values
+            saveLogin(id, 0L);
+            
+            saveIntegers(SQLStatements.getInstance().getStatement("saveSkills"), 
+                    StringUtils.getInt(taming), StringUtils.getInt(mining),
+                    StringUtils.getInt(repair), StringUtils.getInt(woodcutting),
+                    StringUtils.getInt(unarmed), StringUtils.getInt(herbalism),
+                    StringUtils.getInt(excavation), StringUtils.getInt(archery),
+                    StringUtils.getInt(swords), StringUtils.getInt(axes),
+                    StringUtils.getInt(acrobatics), StringUtils.getInt(fishing),
+                    id);
+            saveIntegers(SQLStatements.getInstance().getStatement("saveExperience"), 
+                    StringUtils.getInt(tamingXP), StringUtils.getInt(miningXP),
+                    StringUtils.getInt(repairXP), StringUtils.getInt(woodCuttingXP),
+                    StringUtils.getInt(unarmedXP), StringUtils.getInt(herbalismXP),
+                    StringUtils.getInt(excavationXP), StringUtils.getInt(archeryXP),
+                    StringUtils.getInt(swordsXP), StringUtils.getInt(axesXP),
+                    StringUtils.getInt(acrobaticsXP), StringUtils.getInt(fishingXP),
+                    id);
+        }
+        return true;
     }
 }

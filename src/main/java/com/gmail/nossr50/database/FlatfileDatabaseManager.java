@@ -435,7 +435,6 @@ public final class FlatfileDatabaseManager extends DatabaseManager {
         }
     }
 
-    @Override
     public void newUser(String playerName) {
         try {
             // Open the file to write the player
@@ -561,5 +560,10 @@ public final class FlatfileDatabaseManager extends DatabaseManager {
         }
 
         return playerData;
+    }
+
+    public boolean convert(String[] character) throws Exception {
+        // Not implemented
+        return false;
     }
 }
