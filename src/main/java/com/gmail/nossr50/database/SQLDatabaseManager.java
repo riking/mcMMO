@@ -167,7 +167,7 @@ public final class SQLDatabaseManager {
      * @param sql Query to write.
      * @return true if the query was successfully written, false otherwise.
      */
-    public static boolean write(String sql) {
+    private static boolean write(String sql) {
         if (!checkConnected()) {
             return false;
         }
@@ -212,7 +212,7 @@ public final class SQLDatabaseManager {
      * @param sql SQL query to execute
      * @return the number of rows affected
      */
-    public static int update(String sql) {
+    private static int update(String sql) {
         if (!checkConnected()) {
             return 0;
         }
@@ -340,7 +340,7 @@ public final class SQLDatabaseManager {
      * @param sql SQL query to read
      * @return the rows in this SQL query
      */
-    public static HashMap<Integer, ArrayList<String>> read(String sql) {
+    private static HashMap<Integer, ArrayList<String>> read(String sql) {
         ResultSet resultSet;
         HashMap<Integer, ArrayList<String>> rows = new HashMap<Integer, ArrayList<String>>();
 
@@ -611,7 +611,7 @@ public final class SQLDatabaseManager {
         mcMMO.p.getLogger().severe("VendorError: " + ex.getErrorCode());
     }
 
-    public static ArrayList<String> readRow(PreparedStatement statement) {
+    private static ArrayList<String> readRow(PreparedStatement statement) {
         ResultSet resultSet = null;
         ArrayList<String> playerData = new ArrayList<String>();
 
@@ -645,7 +645,7 @@ public final class SQLDatabaseManager {
      * @param sql SQL query to execute
      * @return the value in the first row / first field
      */
-    public static int readInt(PreparedStatement statement) {
+    private static int readInt(PreparedStatement statement) {
         if (!checkConnected()) {
             return 0;
         }
