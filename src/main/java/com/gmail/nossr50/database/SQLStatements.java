@@ -12,9 +12,11 @@ import com.gmail.nossr50.datatypes.skills.SkillType;
 public class SQLStatements {
     private static SQLStatements instance;
     private Map<String, PreparedStatement> statements;
+    private Connection conn;
 
     protected SQLStatements(Connection conn, String tablePrefix) throws SQLException {
         this.statements = new HashMap<String, PreparedStatement>();
+        this.conn = conn;
         loadStatements(conn, tablePrefix);
     }
 
@@ -116,5 +118,23 @@ public class SQLStatements {
 
     public PreparedStatement getStatement(String key) {
         return statements.get(key);
+    }
+    
+    public void closeStatements() {
+        for (PreparedStatement statement : statements.values()) {
+            try {
+                statement.close();
+            }
+            catch (SQLException e) {
+                // This only happens on shutdown so we can ignore these probably
+            }
+        }
+
+        try {
+            conn.close();
+        }
+        catch (SQLException e) {
+            // Meh
+        }
     }
 }

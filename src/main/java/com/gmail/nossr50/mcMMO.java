@@ -23,6 +23,7 @@ import com.gmail.nossr50.config.mods.CustomToolConfig;
 import com.gmail.nossr50.config.spout.SpoutConfig;
 import com.gmail.nossr50.config.treasure.TreasureConfig;
 import com.gmail.nossr50.database.DatabaseManager;
+import com.gmail.nossr50.database.SQLStatements;
 import com.gmail.nossr50.listeners.BlockListener;
 import com.gmail.nossr50.listeners.EntityListener;
 import com.gmail.nossr50.listeners.InventoryListener;
@@ -182,6 +183,10 @@ public class mcMMO extends JavaPlugin {
                     getLogger().severe(e.toString());
                 }
             }
+        }
+        
+        if (Config.getInstance().getUseMySQL()) {
+            SQLStatements.getInstance().closeStatements();
         }
 
         debug("Was disabled."); // How informative!
