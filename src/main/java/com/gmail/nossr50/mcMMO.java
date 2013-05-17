@@ -109,7 +109,7 @@ public class mcMMO extends JavaPlugin {
 
             combatTagEnabled = getServer().getPluginManager().getPlugin("CombatTag") != null;
 
-            databaseManager = new DatabaseManager(this, Config.getInstance().getUseMySQL());
+            databaseManager = DatabaseManager.getInstance();
 
             registerEvents();
             registerCustomRecipes();

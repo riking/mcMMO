@@ -1,63 +1,36 @@
 package com.gmail.nossr50.database;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
-import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.util.Misc;
+import com.gmail.nossr50.config.Config;
+import com.gmail.nossr50.datatypes.database.PlayerStat;
+import com.gmail.nossr50.datatypes.player.PlayerProfile;
 
-public class DatabaseManager {
-    private final mcMMO plugin;
-    private final boolean isUsingSQL;
-    private File usersFile;
+public abstract class DatabaseManager {
+    
+    private static DatabaseManager instance;
 
-    public DatabaseManager(final mcMMO plugin, final boolean isUsingSQL) {
-        this.plugin = plugin;
-        this.isUsingSQL = isUsingSQL;
-
-        if (isUsingSQL) {
-            SQLDatabaseManager.checkConnected();
-            SQLDatabaseManager.createStructure();
+    public static DatabaseManager getInstance() {
+        if (instance == null) {
+            instance = Config.getInstance().getUseMySQL() ? new SQLDatabaseManager() : new FlatfileDatabaseManager();
         }
-        else {
-            usersFile = new File(mcMMO.getUsersFilePath());
-            createFlatfileDatabase();
-            FlatfileDatabaseManager.updateLeaderboards();
-        }
+        return instance;
     }
 
-    public void purgePowerlessUsers() {
-        plugin.getLogger().info("Purging powerless users...");
-        plugin.getLogger().info("Purged " + (isUsingSQL ? SQLDatabaseManager.purgePowerlessSQL() : FlatfileDatabaseManager.purgePowerlessFlatfile()) + " users from the database.");
-    }
+    public abstract void purgePowerlessUsers();
 
-    public void purgeOldUsers() {
-        plugin.getLogger().info("Purging old users...");
-        plugin.getLogger().info("Purged " + (isUsingSQL ? SQLDatabaseManager.purgeOldSQL() : FlatfileDatabaseManager.removeOldFlatfileUsers()) + " users from the database.");
-    }
+    public abstract void purgeOldUsers();
 
-    public boolean removeUser(String playerName) {
-        if (isUsingSQL ? SQLDatabaseManager.removeUserSQL(playerName) : FlatfileDatabaseManager.removeFlatFileUser(playerName)) {
-            Misc.profileCleanup(playerName);
-            return true;
-        }
+    public abstract boolean removeUser(String playerName);
+    
+    public abstract void saveUser(PlayerProfile player);
 
-        return false;
-    }
+    public abstract List<PlayerStat> readLeaderboard(String skillName, int pageNumber, int i);
 
-    private void createFlatfileDatabase() {
-        if (usersFile.exists()) {
-            return;
-        }
+    public abstract Map<String, Integer> readRank(String playerName);
 
-        usersFile.getParentFile().mkdir();
-
-        try {
-            plugin.debug("Creating mcmmo.users file...");
-            new File(mcMMO.getUsersFilePath()).createNewFile();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    public abstract void newUser(String playerName);
+    
+    public abstract List<String> loadPlayerData(String playerName);
 }

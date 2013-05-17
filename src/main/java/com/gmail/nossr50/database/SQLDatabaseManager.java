@@ -8,48 +8,57 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.config.Config;
+import com.gmail.nossr50.datatypes.MobHealthbarType;
 import com.gmail.nossr50.datatypes.database.DatabaseUpdateType;
+import com.gmail.nossr50.datatypes.database.PlayerStat;
+import com.gmail.nossr50.datatypes.player.PlayerProfile;
+import com.gmail.nossr50.datatypes.skills.AbilityType;
 import com.gmail.nossr50.datatypes.skills.SkillType;
+import com.gmail.nossr50.datatypes.spout.huds.HudType;
 import com.gmail.nossr50.runnables.database.SQLReconnectTask;
 import com.gmail.nossr50.util.Misc;
 
-public final class SQLDatabaseManager {
-    private static String connectionString;
+public final class SQLDatabaseManager extends DatabaseManager {
+    private String connectionString;
 
-    private static String tablePrefix = Config.getInstance().getMySQLTablePrefix();
-    private static Connection connection = null;
+    private String tablePrefix = Config.getInstance().getMySQLTablePrefix();
+    private Connection connection = null;
 
     // Scale waiting time by this much per failed attempt
-    private static final double SCALING_FACTOR = 40;
+    private final double SCALING_FACTOR = 40;
 
     // Minimum wait in nanoseconds (default 500ms)
-    private static final long MIN_WAIT = 500L * 1000000L;
+    private final long MIN_WAIT = 500L * 1000000L;
 
     // Maximum time to wait between reconnects (default 5 minutes)
-    private static final long MAX_WAIT = 5L * 60L * 1000L * 1000000L;
+    private final long MAX_WAIT = 5L * 60L * 1000L * 1000000L;
 
     // How long to wait when checking if connection is valid (default 3 seconds)
-    private static final int VALID_TIMEOUT = 3;
+    private final int VALID_TIMEOUT = 3;
 
     // When next to try connecting to Database in nanoseconds
-    private static long nextReconnectTimestamp = 0L;
+    private long nextReconnectTimestamp = 0L;
 
     // How many connection attempts have failed
-    private static int reconnectAttempt = 0;
+    private int reconnectAttempt = 0;
 
-    private static final long ONE_MONTH = 2630000000L;
+    private final long ONE_MONTH = 2630000000L;
 
-    private SQLDatabaseManager() {}
+    protected SQLDatabaseManager() {
+        checkConnected();
+        createStructure();
+    }
 
     /**
      * Attempt to connect to the mySQL database.
      */
-    public static void connect() {
+    public void connect() {
         Config configInstance = Config.getInstance();
         connectionString = "jdbc:mysql://" + configInstance.getMySQLServerName() + ":" + configInstance.getMySQLServerPort() + "/" + configInstance.getMySQLDatabaseName();
 
@@ -86,7 +95,7 @@ public final class SQLDatabaseManager {
     /**
      * Attempt to create the database structure.
      */
-    public static void createStructure() {
+    public void createStructure() {
         write("CREATE TABLE IF NOT EXISTS `" + tablePrefix + "users` ("
                 + "`id` int(10) unsigned NOT NULL AUTO_INCREMENT,"
                 + "`user` varchar(40) NOT NULL,"
@@ -167,7 +176,7 @@ public final class SQLDatabaseManager {
      * @param sql Query to write.
      * @return true if the query was successfully written, false otherwise.
      */
-    private static boolean write(String sql) {
+    private boolean write(String sql) {
         if (!checkConnected()) {
             return false;
         }
@@ -196,14 +205,18 @@ public final class SQLDatabaseManager {
         }
     }
 
-    public static boolean removeUserSQL(String playerName) {
-        return SQLDatabaseManager.update("DELETE FROM u, e, h, s, c " +
+    public boolean removeUser(String playerName) {
+        boolean success = update("DELETE FROM u, e, h, s, c " +
                 "USING " + tablePrefix + "users u " +
                 "JOIN " + tablePrefix + "experience e ON (u.id = e.user_id) " +
                 "JOIN " + tablePrefix + "huds h ON (u.id = h.user_id) " +
                 "JOIN " + tablePrefix + "skills s ON (u.id = s.user_id) " +
                 "JOIN " + tablePrefix + "cooldowns c ON (u.id = c.user_id) " +
                 "WHERE u.user = '" + playerName + "'") != 0;
+
+        Misc.profileCleanup(playerName);
+
+        return success;
     }
 
     /**
@@ -212,7 +225,7 @@ public final class SQLDatabaseManager {
      * @param sql SQL query to execute
      * @return the number of rows affected
      */
-    private static int update(String sql) {
+    private int update(String sql) {
         if (!checkConnected()) {
             return 0;
         }
@@ -259,7 +272,7 @@ public final class SQLDatabaseManager {
      *
      * @return the boolean value for whether or not we are connected
      */
-    public static boolean checkConnected() {
+    public boolean checkConnected() {
         boolean isClosed = true;
         boolean isValid = false;
         boolean exists = (connection != null);
@@ -340,7 +353,7 @@ public final class SQLDatabaseManager {
      * @param sql SQL query to read
      * @return the rows in this SQL query
      */
-    private static HashMap<Integer, ArrayList<String>> read(String sql) {
+    private HashMap<Integer, ArrayList<String>> read(String sql) {
         ResultSet resultSet;
         HashMap<Integer, ArrayList<String>> rows = new HashMap<Integer, ArrayList<String>>();
 
@@ -379,7 +392,7 @@ public final class SQLDatabaseManager {
         return rows;
     }
 
-    public static Map<String, Integer> readSQLRank(String playerName) {
+    public Map<String, Integer> readRank(String playerName) {
         ResultSet resultSet;
         Map<String, Integer> skills = new HashMap<String, Integer>();
 
@@ -438,7 +451,8 @@ public final class SQLDatabaseManager {
         return skills;
     }
 
-    public static int purgePowerlessSQL() {
+    public void purgePowerlessUsers() {
+        mcMMO.p.getLogger().info("Purging powerless users...");
         HashMap<Integer, ArrayList<String>> usernames = read("SELECT u.user FROM " + tablePrefix + "skills AS s, " + tablePrefix + "users AS u WHERE s.user_id = u.id AND (s.taming+s.mining+s.woodcutting+s.repair+s.unarmed+s.herbalism+s.excavation+s.archery+s.swords+s.axes+s.acrobatics+s.fishing) = 0");
         write("DELETE FROM u, e, h, s, c USING " + tablePrefix + "users u " +
                 "JOIN " + tablePrefix + "experience e ON (u.id = e.user_id) " +
@@ -446,10 +460,11 @@ public final class SQLDatabaseManager {
                 "JOIN " + tablePrefix + "skills s ON (u.id = s.user_id) " +
                 "JOIN " + tablePrefix + "cooldowns c ON (u.id = c.user_id) " +
                 "WHERE (s.taming+s.mining+s.woodcutting+s.repair+s.unarmed+s.herbalism+s.excavation+s.archery+s.swords+s.axes+s.acrobatics+s.fishing) = 0");
-        return processPurge(usernames.values());
+        mcMMO.p.getLogger().info("Purged " + processPurge(usernames.values()) + " users from the database.");
     }
 
-    public static int purgeOldSQL() {
+    public void purgeOldUsers() {
+        mcMMO.p.getLogger().info("Purging old users...");
         long currentTime = System.currentTimeMillis();
         long purgeTime = ONE_MONTH * Config.getInstance().getOldUsersCutoff();
 
@@ -461,10 +476,10 @@ public final class SQLDatabaseManager {
                 "JOIN " + tablePrefix + "cooldowns c ON (u.id = c.user_id) " +
                 "WHERE ((" + currentTime + " - lastlogin*1000) > " + purgeTime + ")");
 
-        return processPurge(usernames.values());
+        mcMMO.p.getLogger().info("Purged " + processPurge(usernames.values()) + " users from the database.");;
     }
 
-    private static int processPurge(Collection<ArrayList<String>> usernames) {
+    private int processPurge(Collection<ArrayList<String>> usernames) {
         int purgedUsers = 0;
 
         for (ArrayList<String> user : usernames) {
@@ -480,7 +495,7 @@ public final class SQLDatabaseManager {
      *
      * @param update Type of data to check updates for
      */
-    private static void checkDatabaseStructure(DatabaseUpdateType update) {
+    private void checkDatabaseStructure(DatabaseUpdateType update) {
         String sql = null;
         ResultSet resultSet = null;
         HashMap<Integer, ArrayList<String>> rows = new HashMap<Integer, ArrayList<String>>();
@@ -605,13 +620,13 @@ public final class SQLDatabaseManager {
         }
     }
 
-    private static void printErrors(SQLException ex) {
+    private void printErrors(SQLException ex) {
         mcMMO.p.getLogger().severe("SQLException: " + ex.getMessage());
         mcMMO.p.getLogger().severe("SQLState: " + ex.getSQLState());
         mcMMO.p.getLogger().severe("VendorError: " + ex.getErrorCode());
     }
 
-    private static ArrayList<String> readRow(PreparedStatement statement) {
+    private ArrayList<String> readRow(PreparedStatement statement) {
         ResultSet resultSet = null;
         ArrayList<String> playerData = new ArrayList<String>();
 
@@ -645,7 +660,7 @@ public final class SQLDatabaseManager {
      * @param sql SQL query to execute
      * @return the value in the first row / first field
      */
-    private static int readInt(PreparedStatement statement) {
+    private int readInt(PreparedStatement statement) {
         if (!checkConnected()) {
             return 0;
         }
@@ -678,7 +693,7 @@ public final class SQLDatabaseManager {
         return result;
     }
 
-    public static void newUser(String playerName) {
+    public void newUser(String playerName) {
         try {
             PreparedStatement statement = SQLStatements.getInstance().getStatement("newUser");
             statement.setString(1, playerName);
@@ -692,7 +707,53 @@ public final class SQLDatabaseManager {
         }
     }
     
-    public static void saveIntegers(PreparedStatement statement, int... args) {
+    public void saveUser(PlayerProfile player) {
+        int userId = readId(player.getPlayerName());
+        saveLogin(userId, ((int) (System.currentTimeMillis() / Misc.TIME_CONVERSION_FACTOR)));
+        MobHealthbarType mobHealthbarType = player.getMobHealthbarType();
+        HudType hudType = player.getHudType();
+        saveHuds(userId, (hudType == null ? "STANDARD" : hudType.toString()), (mobHealthbarType == null ? Config.getInstance().getMobHealthbarDefault().toString() : mobHealthbarType.toString()));
+        saveIntegers(SQLStatements.getInstance().getStatement("saveCooldowns"),
+                (int) player.getSkillDATS(AbilityType.SUPER_BREAKER),
+                (int) player.getSkillDATS(AbilityType.TREE_FELLER),
+                (int) player.getSkillDATS(AbilityType.BERSERK),
+                (int) player.getSkillDATS(AbilityType.GREEN_TERRA),
+                (int) player.getSkillDATS(AbilityType.GIGA_DRILL_BREAKER),
+                (int) player.getSkillDATS(AbilityType.SERRATED_STRIKES),
+                (int) player.getSkillDATS(AbilityType.SKULL_SPLITTER),
+                (int) player.getSkillDATS(AbilityType.BLAST_MINING),
+                userId);
+        saveIntegers(SQLStatements.getInstance().getStatement("saveSkills"),
+                player.getSkillLevel(SkillType.TAMING),
+                player.getSkillLevel(SkillType.MINING),
+                player.getSkillLevel(SkillType.REPAIR),
+                player.getSkillLevel(SkillType.WOODCUTTING),
+                player.getSkillLevel(SkillType.UNARMED),
+                player.getSkillLevel(SkillType.HERBALISM),
+                player.getSkillLevel(SkillType.EXCAVATION),
+                player.getSkillLevel(SkillType.ARCHERY),
+                player.getSkillLevel(SkillType.SWORDS),
+                player.getSkillLevel(SkillType.AXES),
+                player.getSkillLevel(SkillType.ACROBATICS),
+                player.getSkillLevel(SkillType.FISHING),
+                userId);
+        saveIntegers(SQLStatements.getInstance().getStatement("saveExperience"),
+                player.getSkillXpLevel(SkillType.TAMING),
+                player.getSkillXpLevel(SkillType.MINING),
+                player.getSkillXpLevel(SkillType.REPAIR),
+                player.getSkillXpLevel(SkillType.WOODCUTTING),
+                player.getSkillXpLevel(SkillType.UNARMED),
+                player.getSkillXpLevel(SkillType.HERBALISM),
+                player.getSkillXpLevel(SkillType.EXCAVATION),
+                player.getSkillXpLevel(SkillType.ARCHERY),
+                player.getSkillXpLevel(SkillType.SWORDS),
+                player.getSkillXpLevel(SkillType.AXES),
+                player.getSkillXpLevel(SkillType.ACROBATICS),
+                player.getSkillXpLevel(SkillType.FISHING),
+                userId);
+    }
+    
+    private void saveIntegers(PreparedStatement statement, int... args) {
         try {
             int i = 1;
 
@@ -707,7 +768,7 @@ public final class SQLDatabaseManager {
         }
     }
 
-    public static int readId(String playerName) {
+    private int readId(String playerName) {
         try {
             PreparedStatement statement = SQLStatements.getInstance().getStatement("getId");
             statement.setString(1, playerName);
@@ -719,7 +780,7 @@ public final class SQLDatabaseManager {
         return 0;
     }
 
-    public static void saveLogin(int id, long login) {
+    public void saveLogin(int id, long login) {
         try {
             PreparedStatement statement = SQLStatements.getInstance().getStatement("saveLogin");
             statement.setLong(1, login);
@@ -731,19 +792,36 @@ public final class SQLDatabaseManager {
         }
     }
 
-    public static ArrayList<String> readPlayerData(String playerName) {
+    public List<String> loadPlayerData(String playerName) {
+        List<String> playerData = null;
         try {
             PreparedStatement statement = SQLStatements.getInstance().getStatement("loadUser");
             statement.setString(1, playerName);
-            return readRow(statement);
+            
+            playerData = readRow(statement);
+            
+            if (playerData == null || playerData.size() == 0) {
+                int userId = readId(playerName);
+
+                // Check if user doesn't exist
+                if (userId == 0) {
+                    return playerData;
+                }
+
+                // Write missing table rows
+                writeMissingRows(userId);
+
+                // Re-read data
+                playerData = loadPlayerData(playerName);
+            }
         }
         catch (SQLException ex) {
             printErrors(ex);
         }
-        return new ArrayList<String>();
+        return playerData;
     }
 
-    public static void writeMissingRows(int id) {
+    public void writeMissingRows(int id) {
         try {
             PreparedStatement statement = SQLStatements.getInstance().getStatement("missingExperience");
             statement.setInt(1, id);
@@ -766,9 +844,9 @@ public final class SQLDatabaseManager {
         }
     }
 
-    public static HashMap<Integer, ArrayList<String>> readLeaderboard(String skill, int page, int entriesPer) {
+    public List<PlayerStat> readLeaderboard(String skill, int page, int entriesPer) {
         ResultSet resultSet = null;
-        HashMap<Integer, ArrayList<String>> rows = new HashMap<Integer, ArrayList<String>>();
+        List<PlayerStat> stats  = new ArrayList<PlayerStat>();
 
         if (checkConnected()) {
             try {
@@ -784,7 +862,7 @@ public final class SQLDatabaseManager {
                         column.add(resultSet.getString(i));
                     }
 
-                    rows.put(resultSet.getRow(), column);
+                    stats.add(new PlayerStat(column.get(1), Integer.valueOf(column.get(0))));
                 }
             }
             catch (SQLException ex) {
@@ -802,10 +880,10 @@ public final class SQLDatabaseManager {
             }
         }
 
-        return rows;
+        return stats;
     }
 
-    public static void saveHuds(int userId, String hudType, String mobHealthBar) {
+    private void saveHuds(int userId, String hudType, String mobHealthBar) {
         try {
             PreparedStatement statement = SQLStatements.getInstance().getStatement("saveHuds");
             statement.setString(1, hudType);

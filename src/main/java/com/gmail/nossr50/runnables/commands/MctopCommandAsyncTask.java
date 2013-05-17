@@ -1,13 +1,13 @@
 package com.gmail.nossr50.runnables.commands;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.gmail.nossr50.mcMMO;
-import com.gmail.nossr50.database.SQLDatabaseManager;
+import com.gmail.nossr50.database.DatabaseManager;
+import com.gmail.nossr50.datatypes.database.PlayerStat;
 
 public class MctopCommandAsyncTask extends BukkitRunnable {
     private CommandSender sender;
@@ -22,7 +22,7 @@ public class MctopCommandAsyncTask extends BukkitRunnable {
 
     @Override
     public void run() { 
-        final Collection<ArrayList<String>> userStats = SQLDatabaseManager.readLeaderboard(skill, page, 10).values();
+        final List<PlayerStat> userStats = DatabaseManager.getInstance().readLeaderboard(skill, page, 10);
 
         new MctopCommandDisplayTask(userStats, page, skill, sender).runTaskLater(mcMMO.p, 1);
     }

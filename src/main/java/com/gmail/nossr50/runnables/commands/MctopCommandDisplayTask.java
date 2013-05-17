@@ -1,22 +1,22 @@
 package com.gmail.nossr50.runnables.commands;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import com.gmail.nossr50.datatypes.database.PlayerStat;
 import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.util.StringUtils;
 
 public class MctopCommandDisplayTask extends BukkitRunnable {
-    private Collection<ArrayList<String>> userStats;
+    private List<PlayerStat> userStats;
     private CommandSender sender;
     private String skill;
     private int page;
 
-    public MctopCommandDisplayTask(Collection<ArrayList<String>> userStats, int page, String skill, CommandSender sender) {
+    public MctopCommandDisplayTask(List<PlayerStat> userStats, int page, String skill, CommandSender sender) {
         this.userStats = userStats;
         this.page = page;
         this.skill = skill;
@@ -34,11 +34,11 @@ public class MctopCommandDisplayTask extends BukkitRunnable {
 
         int place = (page * 10) - 9;
 
-        for (ArrayList<String> stat : userStats) {
+        for (PlayerStat stat : userStats) {
             String digit = (place < 10) ? "0" : "" + String.valueOf(place);
 
             // Format: 1. Playername - skill value
-            sender.sendMessage(digit + ". " + ChatColor.GREEN + stat.get(1) + " - " + ChatColor.WHITE + stat.get(0));
+            sender.sendMessage(digit + ". " + ChatColor.GREEN + stat.name + " - " + ChatColor.WHITE + stat.statVal);
             place++;
         }
 
