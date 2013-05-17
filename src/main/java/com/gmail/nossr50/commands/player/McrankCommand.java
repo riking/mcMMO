@@ -79,6 +79,7 @@ public class McrankCommand implements TabExecutor {
         }
     }
 
+    @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         switch (args.length) {
             case 1:
