@@ -57,7 +57,6 @@ public class mcMMO extends JavaPlugin {
     /* Managers */
     private static ChunkManager      placeStore;
     private static RepairableManager repairableManager;
-    private static DatabaseManager   databaseManager;
 
     /* File Paths */
     private static String mainDirectory;
@@ -110,7 +109,7 @@ public class mcMMO extends JavaPlugin {
 
             combatTagEnabled = getServer().getPluginManager().getPlugin("CombatTag") != null;
 
-            databaseManager = DatabaseManager.getInstance();
+            DatabaseManager.getInstance();
 
             registerEvents();
             registerCustomRecipes();
@@ -230,10 +229,6 @@ public class mcMMO extends JavaPlugin {
 
     public static ChunkManager getPlaceStore() {
         return placeStore;
-    }
-
-    public static DatabaseManager getDatabaseManager() {
-        return databaseManager;
     }
 
     public static RepairableManager getRepairableManager() {

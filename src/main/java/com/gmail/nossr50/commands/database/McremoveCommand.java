@@ -9,7 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.util.StringUtil;
 
-import com.gmail.nossr50.mcMMO;
+import com.gmail.nossr50.database.DatabaseManager;
 import com.gmail.nossr50.datatypes.player.PlayerProfile;
 import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.util.commands.CommandUtils;
@@ -26,7 +26,7 @@ public class McremoveCommand implements TabExecutor {
                     return true;
                 }
 
-                if (mcMMO.getDatabaseManager().removeUser(args[0])) {
+                if (DatabaseManager.getInstance().removeUser(args[0])) {
                     sender.sendMessage(LocaleLoader.getString("Commands.mcremove.Success", args[0]));
                 }
                 else {
