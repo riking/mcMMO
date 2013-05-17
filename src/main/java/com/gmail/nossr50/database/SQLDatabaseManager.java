@@ -772,7 +772,7 @@ public final class SQLDatabaseManager {
 
         if (checkConnected()) {
             try {
-                PreparedStatement statement = SQLStatements.getInstance().getStatement("mctop_" + skill);
+                PreparedStatement statement = SQLStatements.getInstance().getStatement("mctop_" + skill.toUpperCase());
                 statement.setInt(1, (page * entriesPer) - entriesPer);
                 statement.setInt(2, entriesPer);
                 resultSet = statement.executeQuery();

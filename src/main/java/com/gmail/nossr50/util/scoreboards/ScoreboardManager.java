@@ -298,9 +298,7 @@ public class ScoreboardManager {
         Server server = mcMMO.p.getServer();
 
         if (Config.getInstance().getUseMySQL()) {
-            String tablePrefix = Config.getInstance().getMySQLTablePrefix();
-            String query = (skillName.equalsIgnoreCase("all") ? "taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing" : skillName);
-            final Collection<ArrayList<String>> userStats = SQLDatabaseManager.read("SELECT " + query + ", user, NOW() FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON (user_id = id) WHERE " + query + " > 0 ORDER BY " + query + " DESC, user LIMIT " + ((pageNumber * 15) - 15) + ",15").values();
+            final Collection<ArrayList<String>> userStats = SQLDatabaseManager.readLeaderboard(skillName, pageNumber, 15).values();
 
             for (ArrayList<String> stat : userStats) {
                 String playerName = stat.get(1);
