@@ -8,7 +8,7 @@ import com.gmail.nossr50.datatypes.database.PlayerStat;
 import com.gmail.nossr50.datatypes.player.PlayerProfile;
 
 public abstract class DatabaseManager {
-    
+
     private static DatabaseManager instance;
 
     public static DatabaseManager getInstance() {
@@ -23,7 +23,7 @@ public abstract class DatabaseManager {
     public abstract void purgeOldUsers();
 
     public abstract boolean removeUser(String playerName);
-    
+
     public abstract void saveUser(PlayerProfile player);
 
     public abstract List<PlayerStat> readLeaderboard(String skillName, int pageNumber, int i);
@@ -31,7 +31,7 @@ public abstract class DatabaseManager {
     public abstract Map<String, Integer> readRank(String playerName);
 
     public abstract void newUser(String playerName);
-    
+
     public abstract List<String> loadPlayerData(String playerName);
 
     public abstract boolean convert(String[] character) throws Exception;

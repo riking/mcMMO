@@ -38,7 +38,7 @@ public final class FlatfileDatabaseManager extends DatabaseManager {
         createDatabase();
         updateLeaderboards();
     }
-    
+
     private void createDatabase() {
         if (usersFile.exists()) {
             return;
@@ -520,7 +520,7 @@ public final class FlatfileDatabaseManager extends DatabaseManager {
                 playerData.add(character[13]); // Axes
                 playerData.add(character[14]); // Acrobatics
                 playerData.add(character[34]); // Fishing
-                
+
                 // Experience
                 playerData.add(character[25]); // Taming
                 playerData.add(character[4]); // Mining

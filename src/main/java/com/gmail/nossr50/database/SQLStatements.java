@@ -12,12 +12,12 @@ import com.gmail.nossr50.datatypes.skills.SkillType;
 public class SQLStatements {
     private static SQLStatements instance;
     private Map<String, PreparedStatement> statements;
-    
+
     protected SQLStatements(Connection conn, String tablePrefix) throws SQLException {
         this.statements = new HashMap<String, PreparedStatement>();
         loadStatements(conn, tablePrefix);
     }
-    
+
     private void loadStatements(Connection conn, String tablePrefix) throws SQLException {
         statements.put("loadUser", conn.prepareStatement(
             "SELECT " +
@@ -113,7 +113,7 @@ public class SQLStatements {
     public static SQLStatements getInstance() {
         return instance;
     }
-    
+
     public PreparedStatement getStatement(String key) {
         return statements.get(key);
     }

@@ -162,7 +162,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
         checkDatabaseStructure(DatabaseUpdateType.MOB_HEALTHBARS);
         checkDatabaseStructure(DatabaseUpdateType.PARTY_NAMES);
         checkDatabaseStructure(DatabaseUpdateType.KILL_ORPHANS);
-        
+
         try {
             new SQLStatements(connection, Config.getInstance().getMySQLTablePrefix());
         }
@@ -255,9 +255,6 @@ public final class SQLDatabaseManager extends DatabaseManager {
         return rows;
     }
 
-
-
-
     /**
      * Check connection status and re-establish if dead or stale.
      *
@@ -344,7 +341,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
         }
 
         reconnectAttempt++;
-        nextReconnectTimestamp = (long)(System.nanoTime() + Math.min(MAX_WAIT, (reconnectAttempt * SCALING_FACTOR * MIN_WAIT)));
+        nextReconnectTimestamp = (long) (System.nanoTime() + Math.min(MAX_WAIT, (reconnectAttempt * SCALING_FACTOR * MIN_WAIT)));
         return false;
     }
 
@@ -409,7 +406,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
                     int rank = resultSet.getInt("rank");
 
                     statement = SQLStatements.getInstance().getStatement("mcrank_" + skillType.name() + "_B");
-                    
+
                     resultSet = statement.executeQuery();
 
                     while (resultSet.next()) {
@@ -431,7 +428,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
                 int rank = resultSet.getInt("rank");
 
                 SQLStatements.getInstance().getStatement("mcrank_ALL_B");
-                
+
                 statement.setString(1, playerName);
                 resultSet = statement.executeQuery();
 
@@ -648,7 +645,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
                 try {
                     resultSet.close();
                 }
-                catch (Exception e) { }
+                catch (Exception e) {}
             }
         }
 
@@ -707,7 +704,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
             printErrors(ex);
         }
     }
-    
+
     public void saveUser(PlayerProfile player) {
         int userId = readId(player.getPlayerName());
         saveLogin(userId, ((int) (System.currentTimeMillis() / Misc.TIME_CONVERSION_FACTOR)));
@@ -753,7 +750,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
                 player.getSkillXpLevel(SkillType.FISHING),
                 userId);
     }
-    
+
     private void saveIntegers(PreparedStatement statement, int... args) {
         try {
             int i = 1;
@@ -798,9 +795,9 @@ public final class SQLDatabaseManager extends DatabaseManager {
         try {
             PreparedStatement statement = SQLStatements.getInstance().getStatement("loadUser");
             statement.setString(1, playerName);
-            
+
             playerData = readRow(statement);
-            
+
             if (playerData == null || playerData.size() == 0) {
                 int userId = readId(playerName);
 
@@ -847,7 +844,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
 
     public List<PlayerStat> readLeaderboard(String skill, int page, int entriesPer) {
         ResultSet resultSet = null;
-        List<PlayerStat> stats  = new ArrayList<PlayerStat>();
+        List<PlayerStat> stats = new ArrayList<PlayerStat>();
 
         if (checkConnected()) {
             try {
@@ -1033,7 +1030,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
         if (id > 0) {
             // Update the skill values
             saveLogin(id, 0L);
-            
+
             saveIntegers(SQLStatements.getInstance().getStatement("saveSkills"), 
                     StringUtils.getInt(taming), StringUtils.getInt(mining),
                     StringUtils.getInt(repair), StringUtils.getInt(woodcutting),
@@ -1054,12 +1051,12 @@ public final class SQLDatabaseManager extends DatabaseManager {
         else {
             // Create the user in the DB
             newUser(playerName);
-            
+
             id = readId(playerName);
 
             // Update the skill values
             saveLogin(id, 0L);
-            
+
             saveIntegers(SQLStatements.getInstance().getStatement("saveSkills"), 
                     StringUtils.getInt(taming), StringUtils.getInt(mining),
                     StringUtils.getInt(repair), StringUtils.getInt(woodcutting),
