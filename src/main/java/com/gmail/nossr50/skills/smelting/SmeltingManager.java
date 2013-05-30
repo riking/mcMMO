@@ -116,7 +116,7 @@ public class SmeltingManager extends SkillManager {
     public int getVanillaXpMultiplier() {
         int skillLevel = getSkillLevel();
 
-        for (Tier tier : Tier.values()) {
+        for (Tier tier : Tier.valuesDescending()) {
             if (skillLevel >= tier.getLevel()) {
                 return tier.getVanillaXPBoostModifier();
             }

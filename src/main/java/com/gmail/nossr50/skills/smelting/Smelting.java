@@ -37,6 +37,9 @@ public class Smelting {
 
         abstract protected int getLevel();
         abstract protected int getVanillaXPBoostModifier();
+
+        public static Tier[] valuesDescending() { return new Tier[] { FIVE, FOUR, THREE, TWO, ONE } );
+        public static Tier[] valuesAscending() { return new Tier[] { ONE, TWO, THREE, FOUR, FIVE } );
     }
 
     public static int    burnModifierMaxLevel = AdvancedConfig.getInstance().getBurnModifierMaxLevel();
