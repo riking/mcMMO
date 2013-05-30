@@ -87,7 +87,7 @@ public final class ChimaeraWing {
             }
         }
 
-        location = player.getLocation();
+        location = player.getLocation(location);
 
         if (Config.getInstance().getChimaeraPreventUseUnderground()) {
             if (location.getY() < player.getWorld().getHighestBlockYAt(location)) {
