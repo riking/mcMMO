@@ -116,6 +116,26 @@ public class SQLStatements {
             "SELECT taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing, user, NOW() FROM {TAB}users JOIN {TAB}skills ON (user_id = id) WHERE " +
             "taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing > 0 ORDER BY taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing DESC, user LIMIT ?, ?"
         );
+        addStatement("powerlessPurge",
+                "SELECT u.user FROM OLD TABLE (" +
+                "DELETE FROM u, e, h, s, c USING {TAB}users u " +
+                "JOIN {TAB}experience e ON (u.id = e.user_id) " +
+                "JOIN {TAB}huds h ON (u.id = h.user_id) " +
+                "JOIN {TAB}skills s ON (u.id = s.user_id) " +
+                "JOIN {TAB}cooldowns c ON (u.id = c.user_id) " +
+                "WHERE (s.taming+s.mining+s.woodcutting+s.repair+s.unarmed+s.herbalism+s.excavation+s.archery+s.swords+s.axes+s.acrobatics+s.fishing) = 0" +
+                ")"
+        );
+        addStatement("oldPurge",
+                "SELECT u.user FROM OLD TABLE (" +
+                "DELETE FROM u, e, h, s, c USING {TAB}users u " +
+                "JOIN {TAB}experience e ON (u.id = e.user_id) " +
+                "JOIN {TAB}huds h ON (u.id = h.user_id) " +
+                "JOIN {TAB}skills s ON (u.id = s.user_id) " +
+                "JOIN {TAB}cooldowns c ON (u.id = c.user_id) " +
+                "WHERE ((? - lastlogin*1000) > ?)" +
+                ")"
+        );
     }
 
     public static SQLStatements getInstance() {

@@ -58,14 +58,21 @@ public final class SQLDatabaseManager extends DatabaseManager {
 
     public void purgePowerlessUsers() {
         mcMMO.p.getLogger().info("Purging powerless users...");
-        HashMap<Integer, ArrayList<String>> usernames = read("SELECT u.user FROM " + tablePrefix + "skills AS s, " + tablePrefix + "users AS u WHERE s.user_id = u.id AND (s.taming+s.mining+s.woodcutting+s.repair+s.unarmed+s.herbalism+s.excavation+s.archery+s.swords+s.axes+s.acrobatics+s.fishing) = 0");
-        write("DELETE FROM u, e, h, s, c USING " + tablePrefix + "users u " +
-                "JOIN " + tablePrefix + "experience e ON (u.id = e.user_id) " +
-                "JOIN " + tablePrefix + "huds h ON (u.id = h.user_id) " +
-                "JOIN " + tablePrefix + "skills s ON (u.id = s.user_id) " +
-                "JOIN " + tablePrefix + "cooldowns c ON (u.id = c.user_id) " +
-                "WHERE (s.taming+s.mining+s.woodcutting+s.repair+s.unarmed+s.herbalism+s.excavation+s.archery+s.swords+s.axes+s.acrobatics+s.fishing) = 0");
-        mcMMO.p.getLogger().info("Purged " + processPurge(usernames.values()) + " users from the database.");
+        try {
+            PreparedStatement statement = SQLStatements.getInstance().getStatement("powerlessPurge");
+            // This does the deleting AND returns the usernames of who we deleted for further processing
+            // All in one neat package
+            statement.execute();
+            ResultSet result = statement.getResultSet();
+            int purgeCount = 0;
+            while (result.next()) {
+                Misc.profileCleanup(result.getString(0));
+                purgeCount++;
+            }
+            mcMMO.p.getLogger().info("Purged " + purgeCount + " 0-leveled users from the database.");
+        } catch (SQLException e) {
+            printErrors(e);
+        }
     }
 
     public void purgeOldUsers() {
@@ -73,15 +80,22 @@ public final class SQLDatabaseManager extends DatabaseManager {
         long currentTime = System.currentTimeMillis();
         long purgeTime = ONE_MONTH * Config.getInstance().getOldUsersCutoff();
 
-        HashMap<Integer, ArrayList<String>> usernames = read("SELECT user FROM " + tablePrefix + "users WHERE ((" + currentTime + " - lastlogin*1000) > " + purgeTime + ")");
-        write("DELETE FROM u, e, h, s, c USING " + tablePrefix + "users u " +
-                "JOIN " + tablePrefix + "experience e ON (u.id = e.user_id) " +
-                "JOIN " + tablePrefix + "huds h ON (u.id = h.user_id) " +
-                "JOIN " + tablePrefix + "skills s ON (u.id = s.user_id) " +
-                "JOIN " + tablePrefix + "cooldowns c ON (u.id = c.user_id) " +
-                "WHERE ((" + currentTime + " - lastlogin*1000) > " + purgeTime + ")");
-
-        mcMMO.p.getLogger().info("Purged " + processPurge(usernames.values()) + " users from the database.");;
+        try {
+            PreparedStatement statement = SQLStatements.getInstance().getStatement("purgeOld");
+            ResultSet result;
+            statement.setInt(0, (int) currentTime); // TODO: Convert column to either DATETIME or BIGINT
+            statement.setInt(1, (int) purgeTime);
+            statement.execute();
+            result = statement.getResultSet();
+            int purgeCount = 0;
+            while (result.next()) {
+                Misc.profileCleanup(result.getString(0));
+                purgeCount++;
+            }
+            mcMMO.p.getLogger().info("Purged " + purgeCount + " old users from the database. (Old)");
+        } catch (SQLException e) {
+            printErrors(e);
+        }
     }
 
     public boolean removeUser(String playerName) {
@@ -1008,11 +1022,11 @@ public final class SQLDatabaseManager extends DatabaseManager {
         }
     }
 
-    private int processPurge(Collection<ArrayList<String>> usernames) {
+    private int processPurge(ArrayList<String> usernames) {
         int purgedUsers = 0;
 
-        for (ArrayList<String> user : usernames) {
-            Misc.profileCleanup(user.get(0));
+        for (String user : usernames) {
+            Misc.profileCleanup(user);
             purgedUsers++;
         }
 
