@@ -436,7 +436,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
             // Update the skill values
             saveLogin(id, 0L);
 
-            saveIntegers(SQLStatements.getInstance().getStatement("saveSkills"), 
+            saveIntegers(SQLStatements.getInstance().getStatement("saveSkills"),
                     StringUtils.getInt(taming), StringUtils.getInt(mining),
                     StringUtils.getInt(repair), StringUtils.getInt(woodcutting),
                     StringUtils.getInt(unarmed), StringUtils.getInt(herbalism),
@@ -444,7 +444,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
                     StringUtils.getInt(swords), StringUtils.getInt(axes),
                     StringUtils.getInt(acrobatics), StringUtils.getInt(fishing),
                     id);
-            saveIntegers(SQLStatements.getInstance().getStatement("saveExperience"), 
+            saveIntegers(SQLStatements.getInstance().getStatement("saveExperience"),
                     StringUtils.getInt(tamingXP), StringUtils.getInt(miningXP),
                     StringUtils.getInt(repairXP), StringUtils.getInt(woodCuttingXP),
                     StringUtils.getInt(unarmedXP), StringUtils.getInt(herbalismXP),
@@ -462,7 +462,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
             // Update the skill values
             saveLogin(id, 0L);
 
-            saveIntegers(SQLStatements.getInstance().getStatement("saveSkills"), 
+            saveIntegers(SQLStatements.getInstance().getStatement("saveSkills"),
                     StringUtils.getInt(taming), StringUtils.getInt(mining),
                     StringUtils.getInt(repair), StringUtils.getInt(woodcutting),
                     StringUtils.getInt(unarmed), StringUtils.getInt(herbalism),
@@ -470,7 +470,7 @@ public final class SQLDatabaseManager extends DatabaseManager {
                     StringUtils.getInt(swords), StringUtils.getInt(axes),
                     StringUtils.getInt(acrobatics), StringUtils.getInt(fishing),
                     id);
-            saveIntegers(SQLStatements.getInstance().getStatement("saveExperience"), 
+            saveIntegers(SQLStatements.getInstance().getStatement("saveExperience"),
                     StringUtils.getInt(tamingXP), StringUtils.getInt(miningXP),
                     StringUtils.getInt(repairXP), StringUtils.getInt(woodCuttingXP),
                     StringUtils.getInt(unarmedXP), StringUtils.getInt(herbalismXP),
@@ -737,26 +737,26 @@ public final class SQLDatabaseManager extends DatabaseManager {
                 write(
                         "DELETE FROM " + tablePrefix + "experience " +
                          "WHERE NOT EXISTS (SELECT * FROM " +
-                         tablePrefix + "users u WHERE " + 
-                         tablePrefix + "experience.user_id = u.id);" 
+                         tablePrefix + "users u WHERE " +
+                         tablePrefix + "experience.user_id = u.id);"
                          );
                 write(
                         "DELETE FROM " + tablePrefix + "huds " +
                          "WHERE NOT EXISTS (SELECT * FROM " +
-                         tablePrefix + "users u WHERE " + 
-                         tablePrefix + "huds.user_id = u.id);" 
+                         tablePrefix + "users u WHERE " +
+                         tablePrefix + "huds.user_id = u.id);"
                          );
                 write(
                         "DELETE FROM " + tablePrefix + "cooldowns " +
                          "WHERE NOT EXISTS (SELECT * FROM " +
-                         tablePrefix + "users u WHERE " + 
-                         tablePrefix + "cooldowns.user_id = u.id);" 
+                         tablePrefix + "users u WHERE " +
+                         tablePrefix + "cooldowns.user_id = u.id);"
                          );
                 write(
                         "DELETE FROM " + tablePrefix + "skills " +
                          "WHERE NOT EXISTS (SELECT * FROM " +
-                         tablePrefix + "users u WHERE " + 
-                         tablePrefix + "skills.user_id = u.id);" 
+                         tablePrefix + "users u WHERE " +
+                         tablePrefix + "skills.user_id = u.id);"
                          );
                 return;
 
