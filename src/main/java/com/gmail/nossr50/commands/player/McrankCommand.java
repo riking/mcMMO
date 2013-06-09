@@ -61,7 +61,7 @@ public class McrankCommand implements TabExecutor {
                         return true;
                     }
                 }
-                else if (CommandUtils.inspectOffline(sender, new PlayerProfile(playerName, false), Permissions.mcrankOffline(sender))) {
+                else if (CommandUtils.inspectOffline(sender, mcMMO.getDatabaseManager().loadPlayerData(playerName, false), Permissions.mcrankOffline(sender))) {
                     return true;
                 }
 
