@@ -6,6 +6,22 @@ import com.gmail.nossr50.config.Config;
 public class DatabaseManagerFactory {
     private static Class<? extends DatabaseManager> customManager = null;
 
+    public static DatabaseManager getDatabaseManager() {
+        if (customManager != null) {
+            try {
+                return createCustomDatabaseManager(customManager);
+            } catch (Exception e) {
+                mcMMO.p.debug("Could not create custom database manager");
+                e.printStackTrace();
+            } catch (Throwable e) {
+                mcMMO.p.debug("Failed to create custom database manager");
+                e.printStackTrace();
+            }
+            mcMMO.p.debug("Falling back on " + (Config.getInstance().getUseMySQL() ? "SQL" : "Flatfile") + " database");
+        }
+        return Config.getInstance().getUseMySQL() ? new SQLDatabaseManager() : new FlatfileDatabaseManager();
+    }
+
     /**
      * Sets the custom DatabaseManager class for McMMO to use. This should be
      * called prior to mcMMO enabling.
@@ -21,28 +37,16 @@ public class DatabaseManagerFactory {
      * @throws IllegalArgumentException if the provided class does not have
      *             an empty constructor
      */
-    public static void setCustomDatabaseManagerClass(Class<? extends DatabaseManager> man) {
+    public static void setCustomDatabaseManagerClass(Class<? extends DatabaseManager> clazz) {
         try {
-            customManager.getConstructor((Class<?>) null);
+            clazz.getConstructor((Class<?>) null);
         } catch (Throwable e) {
             throw new IllegalArgumentException("Provided database manager class must have an empty constructor", e);
         }
-        customManager = man;
+        customManager = clazz;
     }
 
-    public static DatabaseManager getDatabaseManager() {
-        if (customManager != null) {
-            try {
-                return customManager.getConstructor((Class<?>) null).newInstance((Object[]) null);
-            } catch (Exception e) {
-                mcMMO.p.debug("Could not create custom database manager");
-                e.printStackTrace();
-            } catch (Throwable e) {
-                mcMMO.p.debug("Failed to create custom database manager");
-                e.printStackTrace();
-            }
-            mcMMO.p.debug("Falling back on " + (Config.getInstance().getUseMySQL() ? "SQL" : "Flatfile") + " database");
-        }
-        return Config.getInstance().getUseMySQL() ? new SQLDatabaseManager() : new FlatfileDatabaseManager();
+    public static DatabaseManager createCustomDatabaseManager(Class<? extends DatabaseManager> clazz) throws Throwable {
+        return customManager.getConstructor((Class<?>) null).newInstance((Object[]) null);
     }
 }
