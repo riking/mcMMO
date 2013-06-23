@@ -508,11 +508,12 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
     public List<String> getStoredUsers() {
         ArrayList<String> users = new ArrayList<String>();
         BufferedReader in = null;
+        FileReader file = null;
 
         synchronized (fileWritingLock) {
             try {
                 // Open the user file
-                FileReader file = new FileReader(mcMMO.getUsersFilePath());
+                file = new FileReader(mcMMO.getUsersFilePath());
                 in = new BufferedReader(file);
                 String line;
 
@@ -526,7 +527,16 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
             }
             finally {
                 try {
-                    in.close();
+                    if (in != null) {
+                        in.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (file != null) {
+                        file.close();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
