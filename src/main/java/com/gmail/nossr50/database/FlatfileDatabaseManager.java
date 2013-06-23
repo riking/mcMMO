@@ -377,7 +377,9 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
                         continue;
                     }
 
-                    return loadFromLine(character);
+                    PlayerProfile p = loadFromLine(character);
+                    in.close();
+                    return p;
                 }
             }
             catch (Exception e) {
