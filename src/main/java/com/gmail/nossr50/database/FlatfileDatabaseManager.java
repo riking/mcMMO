@@ -2,6 +2,7 @@ package com.gmail.nossr50.database;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -93,23 +94,8 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
                 mcMMO.p.getLogger().severe("Exception while reading " + usersFilePath + " (Are you sure you formatted it correctly?)" + e.toString());
             }
             finally {
-                if (in != null) {
-                    try {
-                        in.close();
-                    }
-                    catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-
-                if (out != null) {
-                    try {
-                        out.close();
-                    }
-                    catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
+                tryClose(in);
+                tryClose(out);
             }
         }
 
@@ -160,23 +146,8 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
                 mcMMO.p.getLogger().severe("Exception while reading " + usersFilePath + " (Are you sure you formatted it correctly?)" + e.toString());
             }
             finally {
-                if (in != null) {
-                    try {
-                        in.close();
-                    }
-                    catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-
-                if (out != null) {
-                    try {
-                        out.close();
-                    }
-                    catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
+                tryClose(in);
+                tryClose(out);
             }
         }
 
@@ -214,23 +185,8 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
                 mcMMO.p.getLogger().severe("Exception while reading " + usersFilePath + " (Are you sure you formatted it correctly?)" + e.toString());
             }
             finally {
-                if (in != null) {
-                    try {
-                        in.close();
-                    }
-                    catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-
-                if (out != null) {
-                    try {
-                        out.close();
-                    }
-                    catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
+                tryClose(in);
+                tryClose(out);
             }
         }
 
@@ -314,23 +270,8 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
                 e.printStackTrace();
             }
             finally {
-                if (in != null) {
-                    try {
-                        in.close();
-                    }
-                    catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-
-                if (out != null) {
-                    try {
-                        out.close();
-                    }
-                    catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
+                tryClose(in);
+                tryClose(out);
             }
         }
     }
@@ -358,10 +299,11 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
     }
 
     public void newUser(String playerName) {
+        BufferedWriter out = null;
         synchronized (fileWritingLock) {
             try {
                 // Open the file to write the player
-                BufferedWriter out = new BufferedWriter(new FileWriter(mcMMO.getUsersFilePath(), true));
+                out = new BufferedWriter(new FileWriter(mcMMO.getUsersFilePath(), true));
 
                 // Add the player to the end
                 out.append(playerName).append(":");
@@ -407,22 +349,24 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
                 // Add more in the same format as the line above
 
                 out.newLine();
-                out.close();
             }
             catch (Exception e) {
                 e.printStackTrace();
+            }
+            finally {
+                tryClose(out);
             }
         }
     }
 
     public PlayerProfile loadPlayerProfile(String playerName, boolean create) {
-        FileReader file = null;
         BufferedReader in = null;
+        String usersFilePath = mcMMO.getUsersFilePath();
+
         synchronized (fileWritingLock) {
             try {
                 // Open the user file
-                file = new FileReader(mcMMO.getUsersFilePath());
-                in = new BufferedReader(file);
+                in = new BufferedReader(new FileReader(usersFilePath));
                 String line;
 
                 while ((line = in.readLine()) != null) {
@@ -440,16 +384,7 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
                 e.printStackTrace();
             }
             finally {
-                try {
-                    if (in != null) {
-                        in.close();
-                    }
-                    if (file != null) {
-                        file.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                tryClose(in);
             }
         }
 
@@ -461,14 +396,13 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
     }
 
     public void convertUsers(DatabaseManager destination) {
-        FileReader file = null;
         BufferedReader in = null;
+        String usersFilePath = mcMMO.getUsersFilePath();
 
         synchronized (fileWritingLock) {
             try {
                 // Open the user file
-                file = new FileReader(mcMMO.getUsersFilePath());
-                in = new BufferedReader(file);
+                in = new BufferedReader(new FileReader(usersFilePath));
                 String line;
 
                 while ((line = in.readLine()) != null) {
@@ -486,16 +420,7 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
                 e.printStackTrace();
             }
             finally {
-                try {
-                    if (in != null) {
-                        in.close();
-                    }
-                    if (file != null) {
-                        file.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                tryClose(in);
             }
         }
     }
@@ -508,13 +433,12 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
     public List<String> getStoredUsers() {
         ArrayList<String> users = new ArrayList<String>();
         BufferedReader in = null;
-        FileReader file = null;
+        String usersFilePath = mcMMO.getUsersFilePath();
 
         synchronized (fileWritingLock) {
             try {
                 // Open the user file
-                file = new FileReader(mcMMO.getUsersFilePath());
-                in = new BufferedReader(file);
+                in = new BufferedReader(new FileReader(usersFilePath));
                 String line;
 
                 while ((line = in.readLine()) != null) {
@@ -526,20 +450,7 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
                 e.printStackTrace();
             }
             finally {
-                try {
-                    if (in != null) {
-                        in.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (file != null) {
-                        file.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                tryClose(in);
             }
         }
         return users;
@@ -572,43 +483,48 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
         List<PlayerStat> taming = new ArrayList<PlayerStat>();
         List<PlayerStat> fishing = new ArrayList<PlayerStat>();
 
+        BufferedReader in = null;
         // Read from the FlatFile database and fill our arrays with information
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(usersFilePath));
-            String line = "";
-            ArrayList<String> players = new ArrayList<String>();
+        synchronized (fileWritingLock) {
+            try {
+                in = new BufferedReader(new FileReader(usersFilePath));
+                String line = "";
+                ArrayList<String> players = new ArrayList<String>();
 
-            while ((line = in.readLine()) != null) {
-                String[] data = line.split(":");
-                String playerName = data[0];
-                int powerLevel = 0;
+                while ((line = in.readLine()) != null) {
+                    String[] data = line.split(":");
+                    String playerName = data[0];
+                    int powerLevel = 0;
 
-                // Prevent the same player from being added multiple times (I'd like to note that this shouldn't happen...)
-                if (players.contains(playerName)) {
-                    continue;
+                    // Prevent the same player from being added multiple times (I'd like to note that this shouldn't happen...)
+                    if (players.contains(playerName)) {
+                        continue;
+                    }
+
+                    players.add(playerName);
+
+                    powerLevel += loadStat(mining, playerName, data, 1);
+                    powerLevel += loadStat(woodcutting, playerName, data, 5);
+                    powerLevel += loadStat(repair, playerName, data, 7);
+                    powerLevel += loadStat(unarmed, playerName, data, 8);
+                    powerLevel += loadStat(herbalism, playerName, data, 9);
+                    powerLevel += loadStat(excavation, playerName, data, 10);
+                    powerLevel += loadStat(archery, playerName, data, 11);
+                    powerLevel += loadStat(swords, playerName, data, 12);
+                    powerLevel += loadStat(axes, playerName, data, 13);
+                    powerLevel += loadStat(acrobatics, playerName, data, 14);
+                    powerLevel += loadStat(taming, playerName, data, 24);
+                    powerLevel += loadStat(fishing, playerName, data, 34);
+
+                    powerLevels.add(new PlayerStat(playerName, powerLevel));
                 }
-
-                players.add(playerName);
-
-                powerLevel += loadStat(mining, playerName, data, 1);
-                powerLevel += loadStat(woodcutting, playerName, data, 5);
-                powerLevel += loadStat(repair, playerName, data, 7);
-                powerLevel += loadStat(unarmed, playerName, data, 8);
-                powerLevel += loadStat(herbalism, playerName, data, 9);
-                powerLevel += loadStat(excavation, playerName, data, 10);
-                powerLevel += loadStat(archery, playerName, data, 11);
-                powerLevel += loadStat(swords, playerName, data, 12);
-                powerLevel += loadStat(axes, playerName, data, 13);
-                powerLevel += loadStat(acrobatics, playerName, data, 14);
-                powerLevel += loadStat(taming, playerName, data, 24);
-                powerLevel += loadStat(fishing, playerName, data, 34);
-
-                powerLevels.add(new PlayerStat(playerName, powerLevel));
             }
-            in.close();
-        }
-        catch (Exception e) {
-            mcMMO.p.getLogger().severe("Exception while reading " + usersFilePath + " (Are you sure you formatted it correctly?)" + e.toString());
+            catch (Exception e) {
+                mcMMO.p.getLogger().severe("Exception while reading " + usersFilePath + " (Are you sure you formatted it correctly?)" + e.toString());
+            }
+            finally {
+                tryClose(in);
+            }
         }
 
         SkillComparator c = new SkillComparator();
@@ -653,6 +569,15 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
             new File(mcMMO.getUsersFilePath()).createNewFile();
         }
         catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void tryClose(Closeable c) {
+        if (c == null) return;
+        try {
+            c.close();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
