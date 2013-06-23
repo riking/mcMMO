@@ -3,7 +3,6 @@ package com.gmail.nossr50.commands.database;
 import java.util.List;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
