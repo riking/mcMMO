@@ -503,20 +503,22 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
 
                     players.add(playerName);
 
-                    powerLevel += loadStat(mining, playerName, data, 1);
-                    powerLevel += loadStat(woodcutting, playerName, data, 5);
-                    powerLevel += loadStat(repair, playerName, data, 7);
-                    powerLevel += loadStat(unarmed, playerName, data, 8);
-                    powerLevel += loadStat(herbalism, playerName, data, 9);
-                    powerLevel += loadStat(excavation, playerName, data, 10);
-                    powerLevel += loadStat(archery, playerName, data, 11);
-                    powerLevel += loadStat(swords, playerName, data, 12);
-                    powerLevel += loadStat(axes, playerName, data, 13);
-                    powerLevel += loadStat(acrobatics, playerName, data, 14);
-                    powerLevel += loadStat(taming, playerName, data, 24);
-                    powerLevel += loadStat(fishing, playerName, data, 34);
+                    Map<SkillType, Integer> skills = getSkillMapFromLine(data);
 
-                    powerLevels.add(new PlayerStat(playerName, powerLevel));
+                    powerLevel += putStat(acrobatics, playerName, skills.get(SkillType.ACROBATICS));
+                    powerLevel += putStat(archery, playerName, skills.get(SkillType.ARCHERY));
+                    powerLevel += putStat(axes, playerName, skills.get(SkillType.AXES));
+                    powerLevel += putStat(excavation, playerName, skills.get(SkillType.EXCAVATION));
+                    powerLevel += putStat(fishing, playerName, skills.get(SkillType.FISHING));
+                    powerLevel += putStat(herbalism, playerName, skills.get(SkillType.HERBALISM));
+                    powerLevel += putStat(mining, playerName, skills.get(SkillType.MINING));
+                    powerLevel += putStat(repair, playerName, skills.get(SkillType.REPAIR));
+                    powerLevel += putStat(swords, playerName, skills.get(SkillType.SWORDS));
+                    powerLevel += putStat(taming, playerName, skills.get(SkillType.TAMING));
+                    powerLevel += putStat(unarmed, playerName, skills.get(SkillType.UNARMED));
+                    powerLevel += putStat(woodcutting, playerName, skills.get(SkillType.WOODCUTTING));
+
+                    putStat(powerLevels, playerName, powerLevel);
                 }
             }
             catch (Exception e) {
@@ -600,14 +602,8 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
         return null;
     }
 
-    private int loadStat(List<PlayerStat> statList, String playerName, String[] data, int dataIndex) {
-        if (data.length <= dataIndex) {
-            return 0;
-        }
-
-        int statValue = Integer.parseInt(data[dataIndex]);
+    private int putStat(List<PlayerStat> statList, String playerName, int statValue) {
         statList.add(new PlayerStat(playerName, statValue));
-
         return statValue;
     }
 
@@ -619,24 +615,13 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
     }
 
     private PlayerProfile loadFromLine(String[] character) throws Exception {
-        Map<SkillType, Integer>   skills     = new HashMap<SkillType, Integer>();   // Skill & Level
+        Map<SkillType, Integer>   skills     = getSkillMapFromLine(character);      // Skill levels
         Map<SkillType, Float>     skillsXp   = new HashMap<SkillType, Float>();     // Skill & XP
         Map<AbilityType, Integer> skillsDATS = new HashMap<AbilityType, Integer>(); // Ability & Cooldown
         HudType hudType;
         MobHealthbarType mobHealthbarType;
 
-        skills.put(SkillType.TAMING, Integer.valueOf(character[24]));
-        skills.put(SkillType.MINING, Integer.valueOf(character[1]));
-        skills.put(SkillType.REPAIR, Integer.valueOf(character[7]));
-        skills.put(SkillType.WOODCUTTING, Integer.valueOf(character[5]));
-        skills.put(SkillType.UNARMED, Integer.valueOf(character[8]));
-        skills.put(SkillType.HERBALISM, Integer.valueOf(character[9]));
-        skills.put(SkillType.EXCAVATION, Integer.valueOf(character[10]));
-        skills.put(SkillType.ARCHERY, Integer.valueOf(character[11]));
-        skills.put(SkillType.SWORDS, Integer.valueOf(character[12]));
-        skills.put(SkillType.AXES, Integer.valueOf(character[13]));
-        skills.put(SkillType.ACROBATICS, Integer.valueOf(character[14]));
-        skills.put(SkillType.FISHING, Integer.valueOf(character[34]));
+        // TODO on updates, put new values in a try{} ?
 
         skillsXp.put(SkillType.TAMING, (float) Integer.valueOf(character[25]));
         skillsXp.put(SkillType.MINING, (float) Integer.valueOf(character[4]));
@@ -679,5 +664,24 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
         }
 
         return new PlayerProfile(character[0], skills, skillsXp, skillsDATS, hudType, mobHealthbarType);
+    }
+
+    private Map<SkillType, Integer> getSkillMapFromLine(String[] character) {
+        Map<SkillType, Integer> skills = new HashMap<SkillType, Integer>();   // Skill & Level
+
+        skills.put(SkillType.TAMING, Integer.valueOf(character[24]));
+        skills.put(SkillType.MINING, Integer.valueOf(character[1]));
+        skills.put(SkillType.REPAIR, Integer.valueOf(character[7]));
+        skills.put(SkillType.WOODCUTTING, Integer.valueOf(character[5]));
+        skills.put(SkillType.UNARMED, Integer.valueOf(character[8]));
+        skills.put(SkillType.HERBALISM, Integer.valueOf(character[9]));
+        skills.put(SkillType.EXCAVATION, Integer.valueOf(character[10]));
+        skills.put(SkillType.ARCHERY, Integer.valueOf(character[11]));
+        skills.put(SkillType.SWORDS, Integer.valueOf(character[12]));
+        skills.put(SkillType.AXES, Integer.valueOf(character[13]));
+        skills.put(SkillType.ACROBATICS, Integer.valueOf(character[14]));
+        skills.put(SkillType.FISHING, Integer.valueOf(character[34]));
+
+        return skills;
     }
 }
