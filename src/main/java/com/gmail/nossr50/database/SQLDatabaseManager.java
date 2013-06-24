@@ -26,8 +26,9 @@ import com.gmail.nossr50.util.Misc;
 
 public final class SQLDatabaseManager implements DatabaseManager {
     private String connectionString;
-    private String tablePrefix = Config.getInstance().getMySQLTablePrefix();
-    private Connection connection = null;
+    protected final String tablePrefix = Config.getInstance().getMySQLTablePrefix();
+    protected Connection connection = null;
+    private SqlStatements statements;
 
     // Scale waiting time by this much per failed attempt
     private final double SCALING_FACTOR = 40.0;
@@ -50,6 +51,8 @@ public final class SQLDatabaseManager implements DatabaseManager {
     protected SQLDatabaseManager() {
         checkConnected();
         createStructure();
+        statements = new SqlStatements(this);
+        statements.init();
     }
 
     public void purgePowerlessUsers() {
