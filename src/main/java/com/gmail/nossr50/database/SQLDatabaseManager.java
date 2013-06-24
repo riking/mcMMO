@@ -16,7 +16,6 @@ import java.util.Properties;
 import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.datatypes.MobHealthbarType;
-import com.gmail.nossr50.datatypes.database.DatabaseUpdateType;
 import com.gmail.nossr50.datatypes.database.PlayerStat;
 import com.gmail.nossr50.datatypes.player.PlayerProfile;
 import com.gmail.nossr50.datatypes.skills.AbilityType;
@@ -63,7 +62,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 "JOIN " + tablePrefix + "huds h ON (u.id = h.user_id) " +
                 "JOIN " + tablePrefix + "skills s ON (u.id = s.user_id) " +
                 "JOIN " + tablePrefix + "cooldowns c ON (u.id = c.user_id) " +
-                "WHERE (s.taming+s.mining+s.woodcutting+s.repair+s.unarmed+s.herbalism+s.excavation+s.archery+s.swords+s.axes+s.acrobatics+s.fishing) = 0");
+                "WHERE (s.taming+s.mining+s.woodcutting+s.repair+s.unarmed+s.herbalism+s.excavation+s.archery+s.swords+s.axes+s.acrobatics+s.fishing) = 0", false);
 
         processPurge(usernames);
         mcMMO.p.getLogger().info("Purged " + usernames.size() + " users from the database.");
@@ -81,7 +80,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 "JOIN " + tablePrefix + "huds h ON (u.id = h.user_id) " +
                 "JOIN " + tablePrefix + "skills s ON (u.id = s.user_id) " +
                 "JOIN " + tablePrefix + "cooldowns c ON (u.id = c.user_id) " +
-                "WHERE ((" + currentTime + " - lastlogin * " + Misc.TIME_CONVERSION_FACTOR + ") > " + PURGE_TIME + ")");
+                "WHERE ((" + currentTime + " - lastlogin * " + Misc.TIME_CONVERSION_FACTOR + ") > " + PURGE_TIME + ")", false);
 
         processPurge(usernames);
         mcMMO.p.getLogger().info("Purged " + usernames.size() + " users from the database.");;
@@ -558,19 +557,19 @@ public final class SQLDatabaseManager implements DatabaseManager {
      * Attempt to create the database structure.
      */
     private void createStructure() {
-        write("CREATE TABLE IF NOT EXISTS `" + tablePrefix + "users` ("
+        write("CREATE TABLE IF NOT EXISTS `%1$susers` ("
                 + "`id` int(10) unsigned NOT NULL AUTO_INCREMENT,"
                 + "`user` varchar(40) NOT NULL,"
                 + "`lastlogin` int(32) unsigned NOT NULL,"
                 + "PRIMARY KEY (`id`),"
-                + "UNIQUE KEY `user` (`user`)) DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;");
-        write("CREATE TABLE IF NOT EXISTS `" + tablePrefix + "huds` ("
+                + "UNIQUE KEY `user` (`user`)) DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;", false);
+        write("CREATE TABLE IF NOT EXISTS `%1$shuds` ("
                 + "`user_id` int(10) unsigned NOT NULL,"
                 + "`hudtype` varchar(50) NOT NULL DEFAULT 'STANDARD',"
                 + "`mobhealthbar` varchar(50) NOT NULL DEFAULT '" + Config.getInstance().getMobHealthbarDefault() + "',"
                 + "PRIMARY KEY (`user_id`)) "
-                + "DEFAULT CHARSET=latin1;");
-        write("CREATE TABLE IF NOT EXISTS `" + tablePrefix + "cooldowns` ("
+                + "DEFAULT CHARSET=latin1;", false);
+        write("CREATE TABLE IF NOT EXISTS `%1$scooldowns` ("
                 + "`user_id` int(10) unsigned NOT NULL,"
                 + "`taming` int(32) unsigned NOT NULL DEFAULT '0',"
                 + "`mining` int(32) unsigned NOT NULL DEFAULT '0',"
@@ -585,8 +584,8 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 + "`acrobatics` int(32) unsigned NOT NULL DEFAULT '0',"
                 + "`blast_mining` int(32) unsigned NOT NULL DEFAULT '0',"
                 + "PRIMARY KEY (`user_id`)) "
-                + "DEFAULT CHARSET=latin1;");
-        write("CREATE TABLE IF NOT EXISTS `" + tablePrefix + "skills` ("
+                + "DEFAULT CHARSET=latin1;", false);
+        write("CREATE TABLE IF NOT EXISTS `%1$sskills` ("
                 + "`user_id` int(10) unsigned NOT NULL,"
                 + "`taming` int(10) unsigned NOT NULL DEFAULT '0',"
                 + "`mining` int(10) unsigned NOT NULL DEFAULT '0',"
@@ -601,8 +600,8 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 + "`acrobatics` int(10) unsigned NOT NULL DEFAULT '0',"
                 + "`fishing` int(10) unsigned NOT NULL DEFAULT '0',"
                 + "PRIMARY KEY (`user_id`)) "
-                + "DEFAULT CHARSET=latin1;");
-        write("CREATE TABLE IF NOT EXISTS `" + tablePrefix + "experience` ("
+                + "DEFAULT CHARSET=latin1;", false);
+        write("CREATE TABLE IF NOT EXISTS `%1$sexperience` ("
                 + "`user_id` int(10) unsigned NOT NULL,"
                 + "`taming` int(10) unsigned NOT NULL DEFAULT '0',"
                 + "`mining` int(10) unsigned NOT NULL DEFAULT '0',"
@@ -617,163 +616,109 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 + "`acrobatics` int(10) unsigned NOT NULL DEFAULT '0',"
                 + "`fishing` int(10) unsigned NOT NULL DEFAULT '0',"
                 + "PRIMARY KEY (`user_id`)) "
-                + "DEFAULT CHARSET=latin1;");
+                + "DEFAULT CHARSET=latin1;", false);
 
-        for (DatabaseUpdateType updateType : DatabaseUpdateType.values()) {
-            checkDatabaseStructure(updateType);
+        // Check Blast Mining cooldown column
+        if (!write("SELECT * FROM `%1$scooldowns` ORDER BY `%1$scooldowns`.`blast_mining` ASC LIMIT 0 , 30", true)) {
+            mcMMO.p.getLogger().info("Updating mcMMO MySQL tables for Blast Mining...");
+            if (!write("ALTER TABLE `%1$scooldowns` ADD `blast_mining` int(32) NOT NULL DEFAULT '0' ;", false)) {
+                mcMMO.p.getLogger().severe("Failed to fix SQL tables for Blast Mining, unpredictable results.");
+            }
         }
+
+        // Check for Fishing in the table
+        if (!write("SELECT * FROM `%1$sexperience` ORDER BY `%1$sexperience`.`fishing` ASC LIMIT 0 , 30", true)) {
+            mcMMO.p.getLogger().info("Updating mcMMO MySQL tables for Fishing...");
+            boolean success = true;
+            success &= write("ALTER TABLE `%1$sskills` ADD `fishing` int(10) NOT NULL DEFAULT '0' ;", false);
+            success &= write("ALTER TABLE `%1$sexperience` ADD `fishing` int(10) NOT NULL DEFAULT '0' ;", false);
+            if (!success) {
+                mcMMO.p.getLogger().severe("Failed to fix SQL tables for Fishing, unpredictable results.");
+            }
+        }
+
+        // Check for mob healthbars
+        if (!write("SELECT * FROM `%1$shuds` ORDER BY `%1$shuds`.`mobhealthbar` ASC LIMIT 0 , 30", true)) {
+            mcMMO.p.getLogger().info("Updating mcMMO MySQL tables for Mob Healthbars...");
+            String sql = String.format("ALTER TABLE `%1$shuds` ADD `mobhealthbar` varchar(50) NOT NULL DEFAULT '%2$s' ;", tablePrefix, Config.getInstance().getMobHealthbarDefault().name());
+            if (!write(sql, false)) {
+                mcMMO.p.getLogger().severe("Failed to fix SQL tables for Mob Healthbars, unpredictable results.");
+            }
+        }
+
+        // Check for party names
+        // This one is considered "failure" if the write succeeds, sorta.
+        if (write("ALTER TABLE `%1$susers` DROP COLUMN `party` ;", true)) {
+            mcMMO.p.getLogger().info("Updated mcMMO MySQL tables for party names.");
+        }
+
+        // Check for skill table indices
+        if (read("SHOW INDEX FROM %1$sskills").size() != 13) {
+            mcMMO.p.getLogger().info("Indexing mcMMO MySQL tables for the first time... (this may take a while on larger databases)");
+            if (!write("ALTER TABLE `%1$sskills` " +
+                    "ADD INDEX `idx_taming` (`taming`) USING BTREE, " +
+                    "ADD INDEX `idx_mining` (`mining`) USING BTREE, " +
+                    "ADD INDEX `idx_woodcutting` (`woodcutting`) USING BTREE, " +
+                    "ADD INDEX `idx_repair` (`repair`) USING BTREE, " +
+                    "ADD INDEX `idx_unarmed` (`unarmed`) USING BTREE, " +
+                    "ADD INDEX `idx_herbalism` (`herbalism`) USING BTREE, " +
+                    "ADD INDEX `idx_excavation` (`excavation`) USING BTREE, " +
+                    "ADD INDEX `idx_archery` (`archery`) USING BTREE, " +
+                    "ADD INDEX `idx_swords` (`swords`) USING BTREE, " +
+                    "ADD INDEX `idx_axes` (`axes`) USING BTREE, " +
+                    "ADD INDEX `idx_acrobatics` (`acrobatics`) USING BTREE, " +
+                    "ADD INDEX `idx_fishing` (`fishing`) USING BTREE;", false)) {
+                mcMMO.p.getLogger().severe("Failed to index SQL tables. mcrank/mctop may take a long time until this is fixed.");
+            }
+        }
+
+        killOrphans();
+    }
+
+    private void killOrphans() {
+        mcMMO.p.getLogger().info("Killing orphans");
+        write("DELETE FROM %1$sexperience " +
+                 "WHERE NOT EXISTS (SELECT * FROM " +
+                 "%1$susers u WHERE " +
+                 "%1$sexperience.user_id = u.id);"
+                 , false);
+        write("DELETE FROM %1$shuds " +
+                 "WHERE NOT EXISTS (SELECT * FROM " +
+                 "%1$susers u WHERE " +
+                 "%1$shuds.user_id = u.id);"
+                 , false);
+        write("DELETE FROM %1$scooldowns " +
+                 "WHERE NOT EXISTS (SELECT * FROM " +
+                 "%1$susers u WHERE " +
+                 "%1$scooldowns.user_id = u.id);"
+                 , false);
+        write("DELETE FROM %1$sskills " +
+                 "WHERE NOT EXISTS (SELECT * FROM " +
+                 "%1$susers u WHERE " +
+                 "%1$sskills.user_id = u.id);"
+                 , false);
     }
 
     /**
-     * Check database structure for missing values.
-     *
-     * @param update Type of data to check updates for
-     */
-    private void checkDatabaseStructure(DatabaseUpdateType update) {
-        String sql = "";
-
-        switch (update) {
-            case BLAST_MINING:
-                sql = "SELECT * FROM `" + tablePrefix + "cooldowns` ORDER BY `" + tablePrefix + "cooldowns`.`blast_mining` ASC LIMIT 0 , 30";
-                break;
-
-            case FISHING:
-                sql = "SELECT * FROM `" + tablePrefix + "experience` ORDER BY `" + tablePrefix + "experience`.`fishing` ASC LIMIT 0 , 30";
-                break;
-
-            case INDEX:
-                if (read("SHOW INDEX FROM " + tablePrefix + "skills").size() != 13 && checkConnected()) {
-                    mcMMO.p.getLogger().info("Indexing tables, this may take a while on larger databases");
-                    write("ALTER TABLE `" + tablePrefix + "skills` ADD INDEX `idx_taming` (`taming`) USING BTREE, "
-                            + "ADD INDEX `idx_mining` (`mining`) USING BTREE, "
-                            + "ADD INDEX `idx_woodcutting` (`woodcutting`) USING BTREE, "
-                            + "ADD INDEX `idx_repair` (`repair`) USING BTREE, "
-                            + "ADD INDEX `idx_unarmed` (`unarmed`) USING BTREE, "
-                            + "ADD INDEX `idx_herbalism` (`herbalism`) USING BTREE, "
-                            + "ADD INDEX `idx_excavation` (`excavation`) USING BTREE, "
-                            + "ADD INDEX `idx_archery` (`archery`) USING BTREE, "
-                            + "ADD INDEX `idx_swords` (`swords`) USING BTREE, "
-                            + "ADD INDEX `idx_axes` (`axes`) USING BTREE, "
-                            + "ADD INDEX `idx_acrobatics` (`acrobatics`) USING BTREE, "
-                            + "ADD INDEX `idx_fishing` (`fishing`) USING BTREE;");
-                }
-                return;
-
-            case MOB_HEALTHBARS:
-                sql = "SELECT * FROM `" + tablePrefix + "huds` ORDER BY `" + tablePrefix + "huds`.`mobhealthbar` ASC LIMIT 0 , 30";
-                break;
-
-            case PARTY_NAMES:
-                write("ALTER TABLE `" + tablePrefix + "users` DROP COLUMN `party` ;");
-                return;
-
-            case KILL_ORPHANS:
-                mcMMO.p.getLogger().info("Killing orphans");
-                write(
-                        "DELETE FROM " + tablePrefix + "experience " +
-                         "WHERE NOT EXISTS (SELECT * FROM " +
-                         tablePrefix + "users u WHERE " +
-                         tablePrefix + "experience.user_id = u.id);"
-                         );
-                write(
-                        "DELETE FROM " + tablePrefix + "huds " +
-                         "WHERE NOT EXISTS (SELECT * FROM " +
-                         tablePrefix + "users u WHERE " +
-                         tablePrefix + "huds.user_id = u.id);"
-                         );
-                write(
-                        "DELETE FROM " + tablePrefix + "cooldowns " +
-                         "WHERE NOT EXISTS (SELECT * FROM " +
-                         tablePrefix + "users u WHERE " +
-                         tablePrefix + "cooldowns.user_id = u.id);"
-                         );
-                write(
-                        "DELETE FROM " + tablePrefix + "skills " +
-                         "WHERE NOT EXISTS (SELECT * FROM " +
-                         tablePrefix + "users u WHERE " +
-                         tablePrefix + "skills.user_id = u.id);"
-                         );
-                return;
-
-            default:
-                break;
-        }
-
-        ResultSet resultSet = null;
-        HashMap<Integer, ArrayList<String>> rows = new HashMap<Integer, ArrayList<String>>();
-        PreparedStatement statement = null;
-
-        try {
-            if (!checkConnected()) {
-                return;
-            }
-
-            statement = connection.prepareStatement(sql);
-            resultSet = statement.executeQuery();
-
-            while (resultSet.next()) {
-                ArrayList<String> column = new ArrayList<String>();
-
-                for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
-                    column.add(resultSet.getString(i));
-                }
-
-                rows.put(resultSet.getRow(), column);
-            }
-        }
-        catch (SQLException ex) {
-            switch (update) {
-                case BLAST_MINING:
-                    mcMMO.p.getLogger().info("Updating mcMMO MySQL tables for Blast Mining...");
-                    write("ALTER TABLE `"+tablePrefix + "cooldowns` ADD `blast_mining` int(32) NOT NULL DEFAULT '0' ;");
-                    break;
-
-                case FISHING:
-                    mcMMO.p.getLogger().info("Updating mcMMO MySQL tables for Fishing...");
-                    write("ALTER TABLE `"+tablePrefix + "skills` ADD `fishing` int(10) NOT NULL DEFAULT '0' ;");
-                    write("ALTER TABLE `"+tablePrefix + "experience` ADD `fishing` int(10) NOT NULL DEFAULT '0' ;");
-                    break;
-
-                case MOB_HEALTHBARS:
-                    mcMMO.p.getLogger().info("Updating mcMMO MySQL tables for mob healthbars...");
-                    write("ALTER TABLE `" + tablePrefix + "huds` ADD `mobhealthbar` varchar(50) NOT NULL DEFAULT '" + Config.getInstance().getMobHealthbarDefault() + "' ;");
-                    break;
-
-                default:
-                    break;
-            }
-        }
-        finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    // Ignore the error, we're leaving
-                }
-            }
-        }
-    }
-
-    /**
-     * Attempt to write the SQL query.
+     * Attempt to execute the SQL query, ignoring the return value.
      *
      * @param sql Query to write.
+     * @param suppressErrors Whether to suppress any SQLExceptions from printing
      * @return true if the query was successfully written, false otherwise.
      */
-    private boolean write(String sql) {
+    private boolean write(String sql, boolean suppressErrors) {
         if (!checkConnected()) {
             return false;
         }
 
         PreparedStatement statement = null;
         try {
-            statement = connection.prepareStatement(sql);
+            statement = connection.prepareStatement(String.format(sql, tablePrefix));
             statement.executeUpdate();
             return true;
         }
         catch (SQLException ex) {
-            if (!sql.equalsIgnoreCase("ALTER TABLE `" + tablePrefix + "users` DROP COLUMN `party` ;")) {
+            if (!suppressErrors) {
                 printErrors(ex);
             }
             return false;
@@ -796,7 +741,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
             PreparedStatement statement = null;
 
             try {
-                statement = connection.prepareStatement(sql);
+                statement = connection.prepareStatement(String.format(sql, tablePrefix));
                 rows = statement.executeUpdate();
             }
             catch (SQLException ex) {
@@ -824,7 +769,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
             ResultSet resultSet;
 
             try {
-                statement = connection.prepareStatement(sql);
+                statement = connection.prepareStatement(String.format(sql, tablePrefix));
                 resultSet = statement.executeQuery();
 
                 while (resultSet.next()) {
