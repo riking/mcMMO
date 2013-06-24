@@ -190,14 +190,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 printErrors(ex);
             }
             finally {
-                if (statement != null) {
-                    try {
-                        statement.close();
-                    }
-                    catch (SQLException e) {
-                        // Ignore
-                    }
-                }
+                tryClose(statement);
             }
         }
 
@@ -208,16 +201,17 @@ public final class SQLDatabaseManager implements DatabaseManager {
         Map<String, Integer> skills = new HashMap<String, Integer>();
 
         if (checkConnected()) {
-            ResultSet resultSet;
-
+            ResultSet resultSet = null;
+            PreparedStatement statement = null;
+            String sql;
             try {
                 for (SkillType skillType : SkillType.nonChildSkills()) {
                     String skillName = skillType.name().toLowerCase();
-                    String sql = "SELECT COUNT(*) AS rank FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id WHERE " + skillName + " > 0 " +
+                    sql = "SELECT COUNT(*) AS rank FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id WHERE " + skillName + " > 0 " +
                                  "AND " + skillName + " > (SELECT " + skillName + " FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id " +
                                  "WHERE user = ?)";
 
-                    PreparedStatement statement = connection.prepareStatement(sql);
+                    statement = connection.prepareStatement(sql);
                     statement.setString(1, playerName);
                     resultSet = statement.executeQuery();
 
@@ -244,13 +238,13 @@ public final class SQLDatabaseManager implements DatabaseManager {
                     statement.close();
                 }
 
-                String sql = "SELECT COUNT(*) AS rank FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id " +
+                sql = "SELECT COUNT(*) AS rank FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id " +
                         "WHERE taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing > 0 " +
                         "AND taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing > " +
                         "(SELECT taming+mining+woodcutting+repair+unarmed+herbalism+excavation+archery+swords+axes+acrobatics+fishing " +
                         "FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON user_id = id WHERE user = ?)";
 
-                PreparedStatement statement = connection.prepareStatement(sql);
+                statement = connection.prepareStatement(sql);
                 statement.setString(1, playerName);
                 resultSet = statement.executeQuery();
 
@@ -283,6 +277,10 @@ public final class SQLDatabaseManager implements DatabaseManager {
             catch (SQLException ex) {
                 printErrors(ex);
             }
+            finally {
+                tryClose(resultSet);
+                tryClose(statement);
+            }
         }
 
         return skills;
@@ -303,14 +301,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
             printErrors(ex);
         }
         finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    // Ignore
-                }
-            }
+            tryClose(statement);
         }
     }
 
@@ -370,14 +361,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
             printErrors(ex);
         }
         finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    // Ignore
-                }
-            }
+            tryClose(statement);
         }
         return new PlayerProfile(playerName, false);
     }
@@ -411,19 +395,16 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 catch (SQLException e) {
                     // Ignore
                 }
+                finally {
+                    tryClose(result);
+                }
             }
         }
         catch (SQLException e) {
             printErrors(e);
         }
         finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException e) {
-                    // Ignore
-                }
-            }
+            tryClose(statement);
         }
 
     }
@@ -532,13 +513,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
             printErrors(e);
         }
         finally {
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException e) {
-                    // Ignore
-                }
-            }
+            tryClose(stmt);
         }
         return users;
     }
@@ -804,14 +779,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
             return false;
         }
         finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    // Ignore
-                }
-            }
+            tryClose(statement);
         }
     }
 
@@ -835,14 +803,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 printErrors(ex);
             }
             finally {
-                if (statement != null) {
-                    try {
-                        statement.close();
-                    }
-                    catch (SQLException e) {
-                        // Ignore
-                    }
-                }
+                tryClose(statement);
             }
         }
 
@@ -880,14 +841,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 printErrors(ex);
             }
             finally {
-                if (statement != null) {
-                    try {
-                        statement.close();
-                    }
-                    catch (SQLException e) {
-                        // Ignore
-                    }
-                }
+                tryClose(statement);
             }
         }
 
@@ -917,14 +871,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 printErrors(ex);
             }
             finally {
-                if (statement != null) {
-                    try {
-                        statement.close();
-                    }
-                    catch (SQLException e) {
-                        // Ignore
-                    }
-                }
+                tryClose(statement);
             }
         }
 
@@ -959,14 +906,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
             printErrors(ex);
         }
         finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    // Ignore
-                }
-            }
+            tryClose(statement);
         }
     }
 
@@ -993,14 +933,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
             printErrors(ex);
         }
         finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    // Ignore
-                }
-            }
+            tryClose(statement);
         }
     }
 
@@ -1022,27 +955,24 @@ public final class SQLDatabaseManager implements DatabaseManager {
             printErrors(ex);
         }
         finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    // Ignore
-                }
-            }
+            tryClose(statement);
         }
     }
 
     private int readId(String playerName) {
         int id = 0;
+        PreparedStatement statement = null;
 
         try {
-            PreparedStatement statement = connection.prepareStatement("SELECT id FROM " + tablePrefix + "users WHERE user = ?");
+            statement = connection.prepareStatement("SELECT id FROM " + tablePrefix + "users WHERE user = ?");
             statement.setString(1, playerName);
             id = readInt(statement);
         }
         catch (SQLException ex) {
             printErrors(ex);
+        }
+        finally {
+            tryClose(statement);
         }
 
         return id;
@@ -1061,14 +991,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
             printErrors(ex);
         }
         finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    // Ignore
-                }
-            }
+            tryClose(statement);
         }
     }
 
@@ -1086,17 +1009,13 @@ public final class SQLDatabaseManager implements DatabaseManager {
             printErrors(ex);
         }
         finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    // Ignore
-                }
-            }
+            tryClose(statement);
         }
     }
 
+    /**
+     * Loads a PlayerProfile from the current row of a ResultSet.
+     */
     private PlayerProfile loadFromResult(String playerName, ResultSet result) throws SQLException {
         Map<SkillType, Integer>   skills     = new HashMap<SkillType, Integer>();   // Skill & Level
         Map<SkillType, Float>     skillsXp   = new HashMap<SkillType, Float>();     // Skill & XP
@@ -1169,5 +1088,26 @@ public final class SQLDatabaseManager implements DatabaseManager {
         mcMMO.p.getLogger().severe("SQLException: " + ex.getMessage());
         mcMMO.p.getLogger().severe("SQLState: " + ex.getSQLState());
         mcMMO.p.getLogger().severe("VendorError: " + ex.getErrorCode());
+    }
+
+    private void tryClose(Statement c) {
+        if (c == null) return;
+
+        try {
+            c.close();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    private void tryClose(ResultSet c) {
+        if (c == null) return;
+
+        try {
+            c.close();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
