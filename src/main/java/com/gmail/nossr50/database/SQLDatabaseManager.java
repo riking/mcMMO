@@ -50,12 +50,13 @@ public final class SQLDatabaseManager implements DatabaseManager {
 
     protected SQLDatabaseManager() {
         checkConnected();
-        createStructure();
+        createAndFixStructure();
         statements = new SqlStatements(this);
         statements.init();
     }
 
     public void purgePowerlessUsers() {
+        checkConnected();
         mcMMO.p.getLogger().info("Purging powerless users...");
 
         Collection<ArrayList<String>> usernames = read("SELECT u.user FROM " + tablePrefix + "skills AS s, " + tablePrefix + "users AS u WHERE s.user_id = u.id AND (s.taming+s.mining+s.woodcutting+s.repair+s.unarmed+s.herbalism+s.excavation+s.archery+s.swords+s.axes+s.acrobatics+s.fishing) = 0").values();
@@ -72,6 +73,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
     }
 
     public void purgeOldUsers() {
+        checkConnected();
         long currentTime = System.currentTimeMillis();
 
         mcMMO.p.getLogger().info("Purging old users...");
@@ -90,6 +92,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
     }
 
     public boolean removeUser(String playerName) {
+        checkConnected();
         boolean success = update("DELETE FROM u, e, h, s, c " +
                 "USING " + tablePrefix + "users u " +
                 "JOIN " + tablePrefix + "experience e ON (u.id = e.user_id) " +
@@ -104,6 +107,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
     }
 
     public void saveUser(PlayerProfile profile) {
+        checkConnected();
         int userId = readId(profile.getPlayerName());
         MobHealthbarType mobHealthbarType = profile.getMobHealthbarType();
         HudType hudType = profile.getHudType();
@@ -283,6 +287,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
     }
 
     public void newUser(String playerName) {
+        checkConnected();
         PreparedStatement statement = null;
 
         try {
@@ -302,6 +307,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
     }
 
     public PlayerProfile loadPlayerProfile(String playerName, boolean create) {
+        checkConnected();
         PreparedStatement statement = null;
 
         try {
@@ -363,6 +369,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
     }
 
     public void convertUsers(DatabaseManager destination) {
+        checkConnected();
         PreparedStatement statement = null;
 
         try {
@@ -495,6 +502,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
     }
 
     public List<String> getStoredUsers() {
+        checkConnected();
         ArrayList<String> users = new ArrayList<String>();
         Statement stmt = null;
         try {
@@ -553,7 +561,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
     /**
      * Attempt to create the database structure.
      */
-    private void createStructure() {
+    private void createAndFixStructure() {
         write("CREATE TABLE IF NOT EXISTS `%1$susers` ("
                 + "`id` int(10) unsigned NOT NULL AUTO_INCREMENT,"
                 + "`user` varchar(40) NOT NULL,"
