@@ -508,6 +508,7 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 }
                 nextReconnectTimestamp = 0;
                 reconnectAttempt = 0;
+                statements.init();
                 return true;
             }
         }
