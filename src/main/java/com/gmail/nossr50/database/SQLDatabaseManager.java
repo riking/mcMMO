@@ -173,19 +173,13 @@ public final class SQLDatabaseManager implements DatabaseManager {
             PreparedStatement statement = null;
 
             try {
-                statement = connection.prepareStatement("SELECT " + query + ", user, NOW() FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON (user_id = id) WHERE " + query + " > 0 ORDER BY " + query + " DESC, user LIMIT ?, ?");
+                statement = connection.prepareStatement("SELECT user, " + query + ", NOW() FROM " + tablePrefix + "users JOIN " + tablePrefix + "skills ON (user_id = id) WHERE " + query + " > 0 ORDER BY " + query + " DESC, user LIMIT ?, ?");
                 statement.setInt(1, (pageNumber * statsPerPage) - statsPerPage);
                 statement.setInt(2, statsPerPage);
                 resultSet = statement.executeQuery();
 
                 while (resultSet.next()) {
-                    ArrayList<String> column = new ArrayList<String>();
-
-                    for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
-                        column.add(resultSet.getString(i));
-                    }
-
-                    stats.add(new PlayerStat(column.get(1), Integer.valueOf(column.get(0))));
+                    stats.add(new PlayerStat(resultSet.getString(1), resultSet.getInt(2)));
                 }
             }
             catch (SQLException ex) {
