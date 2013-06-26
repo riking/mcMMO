@@ -319,10 +319,12 @@ public class SqlStatements {
         return dbman.connection.prepareStatement(String.format(sql, dbman.tablePrefix, arg2));
     }
 
+    @SuppressWarnings("unused")
     private PreparedStatement createStmt(String sql, Object arg2, Object arg3) throws SQLException {
         return dbman.connection.prepareStatement(String.format(sql, dbman.tablePrefix, arg2, arg3));
     }
 
+    @SuppressWarnings("unused")
     private PreparedStatement createStmt(String sql, Object arg2, Object arg3, Object arg4) throws SQLException {
         return dbman.connection.prepareStatement(String.format(sql, dbman.tablePrefix, arg2, arg3, arg4));
     }
