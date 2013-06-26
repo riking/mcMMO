@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.config.Config;
@@ -59,17 +60,37 @@ public final class SQLDatabaseManager implements DatabaseManager {
         checkConnected();
         mcMMO.p.getLogger().info("Purging powerless users...");
 
-        Collection<ArrayList<String>> usernames = read("SELECT u.user FROM " + tablePrefix + "skills AS s, " + tablePrefix + "users AS u WHERE s.user_id = u.id AND (s.taming+s.mining+s.woodcutting+s.repair+s.unarmed+s.herbalism+s.excavation+s.archery+s.swords+s.axes+s.acrobatics+s.fishing) = 0").values();
+        PreparedStatement readUsers = statements.purgePowerlessGet;
+        PreparedStatement doPurge = statements.purgePowerlessRun;
+        ResultSet result = null;
 
-        write("DELETE FROM u, e, h, s, c USING " + tablePrefix + "users u " +
-                "JOIN " + tablePrefix + "experience e ON (u.id = e.user_id) " +
-                "JOIN " + tablePrefix + "huds h ON (u.id = h.user_id) " +
-                "JOIN " + tablePrefix + "skills s ON (u.id = s.user_id) " +
-                "JOIN " + tablePrefix + "cooldowns c ON (u.id = c.user_id) " +
-                "WHERE (s.taming+s.mining+s.woodcutting+s.repair+s.unarmed+s.herbalism+s.excavation+s.archery+s.swords+s.axes+s.acrobatics+s.fishing) = 0", false);
+        try {
+            ArrayList<String> usernames = new ArrayList<String>();
+            result = readUsers.executeQuery();
+            while (result.next()) {
+                usernames.add(result.getString(1));
+            }
+            result.close();
 
-        processPurge(usernames);
-        mcMMO.p.getLogger().info("Purged " + usernames.size() + " users from the database.");
+            int count = doPurge.executeUpdate();
+
+            for (String username : usernames) {
+                Misc.profileCleanup(username);
+            }
+
+            if (count != usernames.size()) {
+                mcMMO.p.getLogger().info("Purged either " + count + " or " + usernames.size() + " users from the database... It's probably the first one, though.");
+            }
+            else {
+                mcMMO.p.getLogger().info("Purged " + count + " users from the database.");
+            }
+        }
+        catch (SQLException e) {
+            mcMMO.p.getLogger().log(Level.SEVERE, "Failed to purge powerless users.", e);
+        }
+        finally {
+            tryClose(result);
+        }
     }
 
     public void purgeOldUsers() {
