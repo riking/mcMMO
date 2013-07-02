@@ -4,27 +4,25 @@ import java.util.Map;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.util.Permissions;
 import com.gmail.nossr50.util.skills.SkillUtils;
+import com.google.common.base.Function;
 
-public class McrankCommandDisplayTask extends BukkitRunnable {
-    private final Map<String, Integer> skills;
+public class McrankCommandDisplayTask implements Function<Map<String, Integer>, Void> {
     private final CommandSender sender;
     private final String playerName;
 
-    public McrankCommandDisplayTask(Map<String, Integer> skills, CommandSender sender, String playerName) {
-        this.skills = skills;
+    public McrankCommandDisplayTask(CommandSender sender, String playerName) {
         this.sender = sender;
         this.playerName = playerName;
     }
 
     @Override
-    public void run() {
+    public Void apply(Map<String, Integer> skills) {
         Player player = mcMMO.p.getServer().getPlayer(playerName);
         Integer rank;
 
@@ -42,5 +40,7 @@ public class McrankCommandDisplayTask extends BukkitRunnable {
 
         rank = skills.get("ALL");
         sender.sendMessage(LocaleLoader.getString("Commands.mcrank.Overall", (rank == null ? LocaleLoader.getString("Commands.mcrank.Unranked") : rank)));
+
+        return null;
     }
 }

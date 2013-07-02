@@ -12,7 +12,8 @@ import org.bukkit.util.StringUtil;
 import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.runnables.commands.MctopCommandAsyncTask;
+import com.gmail.nossr50.runnables.commands.MctopCommandDisplayTask;
+import com.gmail.nossr50.runnables.database.ReadLeaderboardAsyncTask;
 import com.gmail.nossr50.util.Permissions;
 import com.gmail.nossr50.util.StringUtils;
 import com.gmail.nossr50.util.commands.CommandUtils;
@@ -85,7 +86,7 @@ public class MctopCommand implements TabExecutor {
     }
 
     private void display(int page, String query, CommandSender sender) {
-        new MctopCommandAsyncTask(page, query, sender).runTaskAsynchronously(mcMMO.p);
+        new ReadLeaderboardAsyncTask(page, query, new MctopCommandDisplayTask(page, query, sender)).runTaskAsynchronously(mcMMO.p);
     }
 
     private boolean extractSkill(CommandSender sender, String skillName) {

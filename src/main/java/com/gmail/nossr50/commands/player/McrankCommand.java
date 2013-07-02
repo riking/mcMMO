@@ -13,7 +13,8 @@ import org.bukkit.util.StringUtil;
 import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.config.Config;
 import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.runnables.commands.McrankCommandAsyncTask;
+import com.gmail.nossr50.runnables.commands.McrankCommandDisplayTask;
+import com.gmail.nossr50.runnables.database.ReadRankAsyncTask;
 import com.gmail.nossr50.util.Permissions;
 import com.gmail.nossr50.util.commands.CommandUtils;
 import com.gmail.nossr50.util.player.UserManager;
@@ -90,6 +91,6 @@ public class McrankCommand implements TabExecutor {
     }
 
     private void display(CommandSender sender, String playerName) {
-        new McrankCommandAsyncTask(playerName, sender).runTaskAsynchronously(mcMMO.p);
+        new ReadRankAsyncTask(playerName, new McrankCommandDisplayTask(sender, playerName)).runTaskAsynchronously(mcMMO.p);
     }
 }

@@ -4,27 +4,25 @@ import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import com.gmail.nossr50.datatypes.database.PlayerStat;
 import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.util.StringUtils;
+import com.google.common.base.Function;
 
-public class MctopCommandDisplayTask extends BukkitRunnable {
-    private List<PlayerStat> userStats;
+public class MctopCommandDisplayTask implements Function<List<PlayerStat>, Void> {
     private CommandSender sender;
     private String skill;
     private int page;
 
-    public MctopCommandDisplayTask(List<PlayerStat> userStats, int page, String skill, CommandSender sender) {
-        this.userStats = userStats;
+    public MctopCommandDisplayTask(int page, String skill, CommandSender sender) {
         this.page = page;
         this.skill = skill;
         this.sender = sender;
     }
 
     @Override
-    public void run() {
+    public Void apply(List<PlayerStat> userStats) {
         if (skill.equalsIgnoreCase("all")) {
             sender.sendMessage(LocaleLoader.getString("Commands.PowerLevel.Leaderboard"));
         }
@@ -43,5 +41,6 @@ public class MctopCommandDisplayTask extends BukkitRunnable {
         }
 
         sender.sendMessage(LocaleLoader.getString("Commands.mctop.Tip"));
+        return null;
     }
 }
