@@ -13,6 +13,9 @@ import com.gmail.nossr50.locale.LocaleLoader;
 import com.gmail.nossr50.util.scoreboards.ScoreboardManager;
 import com.gmail.nossr50.util.skills.SkillUtils;
 
+/**
+ * Display the results of {@link MctopCommandAsyncTask} to the sender.
+ */
 public class MctopCommandDisplayTask extends BukkitRunnable {
     private final List<PlayerStat> userStats;
     private final CommandSender sender;
@@ -20,7 +23,7 @@ public class MctopCommandDisplayTask extends BukkitRunnable {
     private final int page;
     private final boolean useBoard, useChat;
 
-    public MctopCommandDisplayTask(List<PlayerStat> userStats, int page, SkillType skill, CommandSender sender, boolean useBoard, boolean useChat) {
+    /*package-private*/ MctopCommandDisplayTask(List<PlayerStat> userStats, int page, SkillType skill, CommandSender sender, boolean useBoard, boolean useChat) {
         this.userStats = userStats;
         this.page = page;
         this.skill = skill;

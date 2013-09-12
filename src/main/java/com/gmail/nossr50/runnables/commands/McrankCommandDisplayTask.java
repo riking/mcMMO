@@ -13,6 +13,9 @@ import com.gmail.nossr50.util.Permissions;
 import com.gmail.nossr50.util.scoreboards.ScoreboardManager;
 import com.gmail.nossr50.util.skills.SkillUtils;
 
+/**
+ * Display the results of McrankCommandAsyncTask to the sender.
+ */
 public class McrankCommandDisplayTask extends BukkitRunnable {
     private final Map<SkillType, Integer> skills;
     private final CommandSender sender;
