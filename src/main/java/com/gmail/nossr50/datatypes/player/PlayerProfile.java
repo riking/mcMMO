@@ -19,7 +19,7 @@ import com.gmail.nossr50.util.player.UserManager;
 public class PlayerProfile {
     private final String playerName;
     private boolean loaded;
-    private boolean changed;
+    private volatile boolean changed;
 
     /* HUDs */
     private MobHealthbarType mobHealthbarType;
