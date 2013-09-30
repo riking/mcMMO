@@ -70,7 +70,13 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 "WHERE (s.taming+s.mining+s.woodcutting+s.repair+s.unarmed+s.herbalism+s.excavation+s.archery+s.swords+s.axes+s.acrobatics+s.fishing) = 0");
 
         processPurge(usernames);
-        mcMMO.p.getLogger().info("Purged " + usernames.size() + " users from the database.");
+
+        if (usernames.size() != 0) {
+            mcMMO.p.getLogger().info("Purged " + usernames.size() + " users from the SQL database due to having no levels.");
+        }
+        else {
+            mcMMO.p.getLogger().info("No users were purged due to having no levels.");
+        }
     }
 
     public void purgeOldUsers() {
@@ -92,7 +98,12 @@ public final class SQLDatabaseManager implements DatabaseManager {
                 "WHERE ((" + currentTime + " - lastlogin * " + Misc.TIME_CONVERSION_FACTOR + ") > " + PURGE_TIME + ")");
 
         processPurge(usernames);
-        mcMMO.p.getLogger().info("Purged " + usernames.size() + " users from the database.");;
+        if (usernames.size() != 0) {
+            mcMMO.p.getLogger().info("Purged " + usernames.size() + " users from the database due to age (no logons for " + Config.getInstance().getOldUsersCutoff() + " months).");
+        }
+        else {
+            mcMMO.p.getLogger().info("No users were purged due to age.");
+        }
     }
 
     public boolean removeUser(String playerName) {

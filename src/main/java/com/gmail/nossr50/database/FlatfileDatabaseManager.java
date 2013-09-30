@@ -94,7 +94,12 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
             }
         }
 
-        mcMMO.p.getLogger().info("Purged " + purgedUsers + " users from the database.");
+        if (purgedUsers != 0) {
+            mcMMO.p.getLogger().info("Purged " + purgedUsers + " users from the database due to having no levels.");
+        }
+        else {
+            mcMMO.p.getLogger().info("No users were purged due to having no levels.");
+        }
     }
 
     public void purgeOldUsers() {
@@ -159,7 +164,15 @@ public final class FlatfileDatabaseManager implements DatabaseManager {
             }
         }
 
-        mcMMO.p.getLogger().info("Purged " + removedPlayers + " users from the database.");
+
+        if (removedPlayers != 0) {
+            mcMMO.p.getLogger().info("Purged " + removedPlayers + " users from the database due to age (no logons for " + Config.getInstance().getOldUsersCutoff() + " months).");
+            // Invalidate leaderboard data
+            lastUpdate = 0;
+        }
+        else {
+            mcMMO.p.getLogger().info("No users were purged due to age.");
+        }
     }
 
     public boolean removeUser(String playerName) {
