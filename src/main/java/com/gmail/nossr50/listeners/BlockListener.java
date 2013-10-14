@@ -172,7 +172,11 @@ public class BlockListener implements Listener {
             WoodcuttingManager woodcuttingManager = mcMMOPlayer.getWoodcuttingManager();
 
             if (woodcuttingManager.canUseTreeFeller(heldItem)) {
+                long stopTime;
+                long startTime = System.nanoTime();
                 woodcuttingManager.processTreeFeller(blockState);
+                stopTime = System.nanoTime();
+                mcMMO.p.debug(String.format("Tree feller processing took %.6f milliseconds.", (startTime - stopTime) / 1000000D));
             }
             else {
                 woodcuttingManager.woodcuttingBlockCheck(blockState);
