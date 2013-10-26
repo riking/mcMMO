@@ -428,7 +428,7 @@ public class mcMMO extends JavaPlugin {
         new PowerLevelUpdatingTask().runTaskTimer(this, 2 * Misc.TICK_CONVERSION_FACTOR, 2 * Misc.TICK_CONVERSION_FACTOR);
 
         // Clear the registered XP data so players can earn XP again
-        if (ExperienceConfig.getInstance().getDeminishedReturnsThreshold() > 0) {
+        if (ExperienceConfig.getInstance().getDiminishedReturnsThreshold() > 0) {
             new ClearRegisteredXPGainTask().runTaskTimer(this, 60 * 20, 60 * 20);
         }
     }
