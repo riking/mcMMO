@@ -117,7 +117,7 @@ public class EventUtils {
         if (!isCancelled) {
             PlayerProfile profile = UserManager.getPlayer(player).getProfile();
             profile.setSkillXpLevel(skill, profile.getSkillXpLevelRaw(skill) + event.getRawXpGained());
-            profile.registeredXpGain(skill, event.getRawXpGained());
+            profile.registerXpGain(skill, event.getRawXpGained());
         }
 
         return !isCancelled;
